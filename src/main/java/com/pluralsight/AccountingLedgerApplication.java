@@ -123,7 +123,8 @@ public class AccountingLedgerApplication {
                 case 1 -> printMonthToDate();
                 case 2 -> printPreviousMonth();
                 case 3 -> printYearToDate();
-//                case 4 -> reportsMenu();
+                case 4 -> printPreviousYear();
+//                case 5 -> reportsMenu();
                 case 0 -> {
                     if (sc.hasNextLine()) sc.nextLine();
                     System.out.println("Exiting...");
@@ -139,12 +140,20 @@ public class AccountingLedgerApplication {
 
     }
 
+    private static void printPreviousYear() {
+        LocalDate today = LocalDate.now();
+        int prevYear = today.getYear() - 1;
+        LocalDate firstDayPrevYear = LocalDate.of(prevYear, 1, 1);
+        LocalDate lastDayPrevYear  = LocalDate.of(prevYear, 12, 31);
+        printByDuration(firstDayPrevYear, lastDayPrevYear);
+    }
+
+
     private static void printYearToDate() {
         LocalDate today = LocalDate.now();
         LocalDate firstDayOfYear = today.withDayOfYear(1);
         printByDuration(firstDayOfYear, today);
     }
-
 
     private static void printPreviousMonth() {
         LocalDate today = LocalDate.now(); //first I get current date
