@@ -99,13 +99,28 @@ public class AccountingLedgerApplication {
         }
     }
 
-    private static void printAllPayments() {
-        List<Transaction> ledgerCopy = new ArrayList<>(ledger);
-        ledgerCopy.sort(BY_DATETIME_DESC); //sort the Ledger Copy to be in sorted format by latest
-        for (Transaction record : ledgerCopy) { //for every Transaction in ledger Copy
-            if (record.getAmount() < 0) { //this will print all the credits
-                printFormatted(record);
-            }
+    private static void printByType(String transactionType) {
+        // here I will normalize the input first null or anything else means "all"
+        String type = transactionType == null ? "all" : transactionType.toLowerCase();
+
+        List<Transaction> copy = new ArrayList<>(ledger);
+        copy.sort(BY_DATETIME_DESC); // newest first
+
+        switch (type) {
+            case "credit": // payments (amount < 0)
+                for (Transaction t : copy) {
+                    if (t.getAmount() < 0) printFormatted(t);
+                }
+                break;
+            case "debit":  // deposits (amount > 0)
+                for (Transaction t : copy) {
+                    if (t.getAmount() > 0) printFormatted(t);
+                }
+                break;
+            default:       // "all"
+                for (Transaction t : copy) {
+                    printFormatted(t);
+                }
         }
     }
 
