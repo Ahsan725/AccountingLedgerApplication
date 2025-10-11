@@ -124,7 +124,7 @@ public class AccountingLedgerApplication {
                 case 2 -> printPreviousMonth();
                 case 3 -> printYearToDate();
                 case 4 -> printPreviousYear();
-//                case 5 -> reportsMenu();
+                case 5 -> searchByVendor();
                 case 0 -> {
                     if (sc.hasNextLine()) sc.nextLine();
                     System.out.println("Exiting...");
@@ -140,6 +140,19 @@ public class AccountingLedgerApplication {
 
     }
 
+    private static void searchByVendor() {
+        String vendorName;
+        sc.nextLine();
+        System.out.println("Enter name of the vendor: ");
+        vendorName = sc.nextLine();
+
+        for (Transaction record : ledger){
+            if (record.getVendor().toLowerCase().contains(vendorName.toLowerCase())){
+                printFormatted(record);
+            }
+        }
+    }
+
     private static void printPreviousYear() {
         LocalDate today = LocalDate.now();
         int prevYear = today.getYear() - 1;
@@ -147,7 +160,6 @@ public class AccountingLedgerApplication {
         LocalDate lastDayPrevYear  = LocalDate.of(prevYear, 12, 31);
         printByDuration(firstDayPrevYear, lastDayPrevYear);
     }
-
 
     private static void printYearToDate() {
         LocalDate today = LocalDate.now();
