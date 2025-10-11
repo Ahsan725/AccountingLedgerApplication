@@ -200,7 +200,11 @@ public class AccountingLedgerApplication {
 
     private static void printAllLatest() {
         //could use stream here
-
+            List<Transaction> copy = new ArrayList<>(ledger); // making a copy to not change the order of the original ledger
+            copy.sort(BY_DATETIME_DESC);                      // newest first
+            for (Transaction record : copy) {
+                printFormatted(record);
+            }
 
         //can also be written as:  .forEach(AccountingLedgerApplication::printFormatted); but I chose the above
         //to be explicit and be easier to read and understand
