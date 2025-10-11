@@ -147,7 +147,7 @@ public class AccountingLedgerApplication {
 
             System.out.println("""
                     
-                    REPORT MENU
+                    SEARCH MENU
                     What would you like to search by?
                     1) Vendor Name
                     2) Transaction Description
