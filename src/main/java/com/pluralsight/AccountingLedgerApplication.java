@@ -100,8 +100,10 @@ public class AccountingLedgerApplication {
     }
 
     private static void printAllPayments() {
-        for (Transaction record : ledger) {
-            if (record.transactionType().equalsIgnoreCase("credit")) {
+        List<Transaction> ledgerCopy = new ArrayList<>(ledger);
+        ledgerCopy.sort(BY_DATETIME_DESC); //sort the Ledger Copy to be in sorted format by latest
+        for (Transaction record : ledgerCopy) { //for every Transaction in ledger Copy
+            if (record.getAmount() < 0) { //this will print all the credits
                 printFormatted(record);
             }
         }
