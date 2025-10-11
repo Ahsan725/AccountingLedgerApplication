@@ -84,8 +84,8 @@ public class AccountingLedgerApplication {
                     """);
             operation = sc.nextLine().toLowerCase().charAt(0);
             switch (operation) {
-                case 'a' -> printAllLatest();
-                case 'd' -> printAllDeposits();
+                case 'a' -> printByTypeSorted("all");
+                case 'd' -> printByTypeSorted("debit");
                 case 'p' -> printByTypeSorted("credit");
 //                case 'r' ->
                 case 'h' -> System.out.println("Exiting...");
@@ -121,16 +121,6 @@ public class AccountingLedgerApplication {
                 for (Transaction t : copy) {
                     printFormatted(t);
                 }
-        }
-    }
-
-    private static void printAllDeposits() {
-        List<Transaction> ledgerCopy = new ArrayList<>(ledger);
-        ledgerCopy.sort(BY_DATETIME_DESC);//sort the Ledger Copy to be in sorted format by latest
-        for (Transaction record : ledgerCopy) {//for every Transaction in ledger Copy
-            if (record.getAmount() > 0) {//this will print all the credits
-                printFormatted(record);
-            }
         }
     }
 
@@ -171,7 +161,7 @@ public class AccountingLedgerApplication {
         System.out.println(depositOnly ? "Deposit added successfully!" : "Payment added successfully!");
 
         // for testing
-        printAllLatest();
+        printByTypeSorted("all");
     }
 
     private static void readFromFileAndAddToLedger() {
@@ -209,7 +199,7 @@ public class AccountingLedgerApplication {
                 }
             }
 
-            printAllLatest(); //only for testing right now
+            printByTypeSorted("all"); //only for testing right now
         } catch (FileNotFoundException e) {
             System.err.println("ERROR: File not found: " + fileName);
         } catch (IOException e) {
