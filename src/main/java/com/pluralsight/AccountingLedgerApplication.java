@@ -115,10 +115,13 @@ public class AccountingLedgerApplication {
             operation = sc.nextInt();
             switch (operation) {
                 case 1 -> printMonthToDate();
-//                case 2 -> printByTypeSorted("debit");
+                case 2 -> printPreviousMonth();
 //                case 3 -> printByTypeSorted("credit");
 //                case 4 -> reportsMenu();
-//                case 5 -> System.out.println("Exiting...");
+                case 0 -> {
+                    if (sc.hasNextLine()) sc.nextLine();
+                    System.out.println("Exiting...");
+                }
                 default -> {
                     //catch all else
                     System.out.println("Invalid operation... Try again or press 0 to quit");
@@ -129,6 +132,17 @@ public class AccountingLedgerApplication {
         }
 
     }
+
+    private static void printPreviousMonth() {
+        LocalDate today = LocalDate.now(); //first I get current date
+        //used yearMonth from java time to do calendric arithmetic as Paul calls it
+        java.time.YearMonth prev = java.time.YearMonth.from(today).minusMonths(1); //then previous month
+        LocalDate firstOfPrevious = prev.atDay(1);//then the first day of prev month
+        LocalDate lastOfPrevious  = prev.atEndOfMonth(); //then last day of the prev month
+
+        printByDuration(firstOfPrevious, lastOfPrevious);
+    }
+
 
     private static void printMonthToDate() {
         LocalDate today = LocalDate.now();
