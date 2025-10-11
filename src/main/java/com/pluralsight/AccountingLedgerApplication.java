@@ -62,9 +62,8 @@ public class AccountingLedgerApplication {
     }
 
     private static void ledgerMenu() {
-        System.out.println("LEDGER MENU");
         char operation = ' ';
-        while (operation != 'x') {
+        while (operation != 'h') {
 
             System.out.println("""
                     
@@ -80,7 +79,7 @@ public class AccountingLedgerApplication {
             operation = sc.nextLine().toLowerCase().charAt(0);
             switch (operation) {
                 case 'a' -> printAllLatest();
-//                case 'd' ->
+                case 'd' -> printAllDeposits();
 //                case 'p' ->
 //                case 'r' ->
                 case 'h' -> System.out.println("Exiting...");
@@ -91,6 +90,21 @@ public class AccountingLedgerApplication {
                 }
             }
 
+        }
+    }
+
+    private static void printAllDeposits() {
+        for (Transaction record : ledger){
+            if (record.transactionType().equalsIgnoreCase("debit")){
+                System.out.printf(
+                        "type: %s  | %s | %s %s | %s | %.2f%n",
+                        record.transactionType(),
+                        record.getDescription(),
+                        record.getDate(), record.getTime(),
+                        record.getVendor(),
+                        record.getAmount()
+                );
+            }
         }
     }
 
@@ -184,13 +198,19 @@ public class AccountingLedgerApplication {
                         .comparing(Transaction::getDate)
                         .thenComparing(Transaction::getTime)
                         .reversed())
-                .forEach(record -> System.out.printf(
-                        "type: %s  | %s | %s %s | %s | %.2f%n",
-                        record.transactionType(),
-                        record.getDescription(),
-                        record.getDate(), record.getTime(),
-                        record.getVendor(),
-                        record.getAmount()
-                ));
+                .forEach(record -> printFormatted(record));
+        //can also be written as:  .forEach(AccountingLedgerApplication::printFormatted); but I chose the above
+        //to be explicit and be easier to read and understand
+    }
+
+    private static void printFormatted(Transaction record){
+        System.out.printf(
+                "type: %s  | %s | %s %s | %s | %.2f%n",
+                record.transactionType(),
+                record.getDescription(),
+                record.getDate(), record.getTime(),
+                record.getVendor(),
+                record.getAmount()
+        );
     }
 }
