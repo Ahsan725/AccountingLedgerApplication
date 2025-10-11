@@ -116,6 +116,7 @@ public class AccountingLedgerApplication {
                     3) Year To Date
                     4) Previous Year
                     5) Search By Vendor
+                    6) Custom Search
                     0) Back
                     Enter command:
                     """);
@@ -125,7 +126,8 @@ public class AccountingLedgerApplication {
                 case 2 -> printPreviousMonth();
                 case 3 -> printYearToDate();
                 case 4 -> printPreviousYear();
-                case 5 -> searchMenu();
+                case 5 -> searchByVendor();
+                case 6 -> searchMenu();
                 case 0 -> {
                     if (sc.hasNextLine()) sc.nextLine();
                     System.out.println("Exiting...");
@@ -357,7 +359,7 @@ public class AccountingLedgerApplication {
         }
 
         System.out.printf(
-                "%-10s  %-30.30s  %-20.20s  %,12.2f  %-6.6s  %-8s%n",
+                "%-10s  %-30.30s  %-12.20s  %,12.2f  %-6.6s  %-8s%n",
                 dateString,
                 record.getDescription(),
                 record.getVendor(),
