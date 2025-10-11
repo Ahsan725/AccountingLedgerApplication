@@ -122,7 +122,7 @@ public class AccountingLedgerApplication {
             switch (operation) {
                 case 1 -> printMonthToDate();
                 case 2 -> printPreviousMonth();
-//                case 3 -> printByTypeSorted("credit");
+                case 3 -> printYearToDate();
 //                case 4 -> reportsMenu();
                 case 0 -> {
                     if (sc.hasNextLine()) sc.nextLine();
@@ -138,6 +138,13 @@ public class AccountingLedgerApplication {
         }
 
     }
+
+    private static void printYearToDate() {
+        LocalDate today = LocalDate.now();
+        LocalDate firstDayOfYear = today.withDayOfYear(1);
+        printByDuration(firstDayOfYear, today);
+    }
+
 
     private static void printPreviousMonth() {
         LocalDate today = LocalDate.now(); //first I get current date
