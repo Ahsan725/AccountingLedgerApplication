@@ -42,8 +42,8 @@ public class AccountingLedgerApplication {
             operation = sc.nextLine().toLowerCase().charAt(0);
 
             switch (operation) {
-                case 'd' -> depositsMainMenu();
-//                case 'p' -> paymentsMainMenu();
+                case 'd' -> makeDeposit();
+                case 'p' -> makePayment();
 //                case 'l' -> displayLedger();
                 case 'x' -> System.out.println("Exiting...");
                 default -> {
@@ -56,7 +56,7 @@ public class AccountingLedgerApplication {
         }
     }
 
-    private static void depositsMainMenu() {
+    private static void makePayment() {
         String description;
         String vendor;
         double amount;
@@ -82,6 +82,57 @@ public class AccountingLedgerApplication {
         //for testing
         printLatest();
     }
+
+    private static void makeDeposit() {
+        //since we are making a deposit we will only allow positive transaction
+        performTransaction(true);
+
+    }
+
+    private static void performTransaction(boolean positiveOnly) {
+        System.out.println(positiveOnly ? "DEPOSIT SCREEN" : "PAYMENT SCREEN");
+
+        // If method called nextInt/nextDouble earlier, clear the leftover newline first:
+        if (sc.hasNextLine()) sc.nextLine();
+
+        System.out.print("Enter the Transaction Description: ");
+        String description = sc.nextLine();
+
+        System.out.print("Enter the name of the vendor: ");
+        String vendor = sc.nextLine();
+
+        double amount;
+        while (true) {
+            System.out.print("Enter the amount: ");
+            if (sc.hasNextDouble()) {
+                amount = sc.nextDouble();
+                sc.nextLine(); // consume the newline left by nextDouble()
+                if (positiveOnly && amount < 0) {
+                    System.out.println("Amount is negative! Enter a positive amount to make a deposit...");
+                    continue;
+                }
+                if (!positiveOnly && amount > 0) {
+                    System.out.println("Amount is positive! Enter a negative amount to make a payment...");
+                    continue;
+                }
+                break; // valid amount
+            } else {
+                System.out.println("Invalid number. Please enter a numeric amount (e.g., 123.45 or -67.89).");
+                sc.nextLine(); // discard bad token
+            }
+        }
+
+        LocalDate date = LocalDate.now();
+        LocalTime time = LocalTime.now().withNano(0);
+
+        ledger.add(new Transaction(date, time, description, vendor, amount));
+        System.out.println(positiveOnly ? "Deposit added successfully!" : "Payment added successfully!");
+
+        // for testing
+        printLatest();
+    }
+
+
 
     private static void readFromFileAndAddToLedger() {
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
