@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Scanner;
 
 public class AccountingLedgerApplication {
@@ -17,6 +18,11 @@ public class AccountingLedgerApplication {
     static Scanner sc = new Scanner(System.in); //added a static Scanner to avoid passing it to methods repeatedly
     static String fileName = "transactions.csv";//file we will read from and write to
     static ArrayList<Transaction> ledger = new ArrayList<>();
+    //static comparator
+    private static final Comparator<Transaction> BY_DATETIME_DESC =
+            Comparator.comparing(Transaction::getDate)
+                    .thenComparing(Transaction::getTime)
+                    .reversed();
 
     public static void main(String[] args) {
 
@@ -193,13 +199,9 @@ public class AccountingLedgerApplication {
     }
 
     private static void printAllLatest() {
-        //using stream here
-        ledger.stream()
-                .sorted(Comparator
-                        .comparing(Transaction::getDate)
-                        .thenComparing(Transaction::getTime)
-                        .reversed())
-                .forEach(record -> printFormatted(record));
+        //could use stream here
+
+
         //can also be written as:  .forEach(AccountingLedgerApplication::printFormatted); but I chose the above
         //to be explicit and be easier to read and understand
     }
