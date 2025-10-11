@@ -344,6 +344,27 @@ public class AccountingLedgerApplication {
     }
 
     private static void printFormatted(Transaction record) {
-        System.out.printf("type: %s  | %s | %s %s | %s | %.2f%n", record.transactionType(), record.getDescription(), record.getDate(), record.getTime(), record.getVendor(), record.getAmount());
+        // date | description | vendor | amount | type | time
+        // widths: 10 | 30 | 20 | 12 | 6 | 8
+        String dateString = (record.getDate() == null) ? "" : record.getDate().toString(); // YYYY-MM-DD
+
+        // Always HH:mm:ss with zero padding because my time was missing 00 sometimes
+        String timeString = "";
+        if (record.getTime() != null) {
+            timeString = record.getTime()
+                    .withNano(0)
+                    .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+        }
+
+        System.out.printf(
+                "%-10s  %-30.30s  %-20.20s  %,12.2f  %-6.6s  %-8s%n",
+                dateString,
+                record.getDescription(),
+                record.getVendor(),
+                record.getAmount(),            // amount with commas
+                record.transactionType(),
+                timeString                   // zero-padded time
+        );
     }
+
 }
