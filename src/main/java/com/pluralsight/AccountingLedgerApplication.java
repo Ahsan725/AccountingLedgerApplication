@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Scanner;
 
 public class AccountingLedgerApplication {
@@ -99,9 +100,19 @@ public class AccountingLedgerApplication {
     }
 
     private static void printLatest() {
-        for (var record : ledger) {
-            System.out.println("transaction: " + record.transactionType() + " " + record.getDescription());
-        }
+        ledger.stream()
+                .sorted(Comparator
+                        .comparing(Transaction::getDate)
+                        .thenComparing(Transaction::getTime)
+                        .reversed())
+                .forEach(record -> System.out.printf(
+                        "type: %s  | %s | %s %s | %s | %.2f%n",
+                        record.transactionType(),
+                        record.getDescription(),
+                        record.getDate(), record.getTime(),
+                        record.getVendor(),
+                        record.getAmount()
+                ));
     }
 
 
