@@ -7,15 +7,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Scanner;
 
 public class AccountingLedgerApplication {
 
     //static comparator
-    private static final Comparator<Transaction> BY_DATETIME_DESC =
-            Comparator.comparing(Transaction::getDate)
-                    .thenComparing(Transaction::getTime)
-                    .reversed();
+    private static final Comparator<Transaction> BY_DATETIME_DESC = Comparator.comparing(Transaction::getDate).thenComparing(Transaction::getTime).reversed();
     //Static variables
     static Scanner sc = new Scanner(System.in); //added a static Scanner to avoid passing it to methods repeatedly
     static String fileName = "transactions.csv";//file we will read from and write to
@@ -140,14 +140,13 @@ public class AccountingLedgerApplication {
     }
 
     private static void printByDuration(LocalDate start, LocalDate end) {
-
+        //will add guardrails later
         ArrayList<Transaction> ledgerCopy = new ArrayList<>(ledger);
         ledgerCopy.sort(BY_DATETIME_DESC); //latest first
 
         for (Transaction record : ledgerCopy) {
             LocalDate date = record.getDate();
-            if ((date.isEqual(start) || date.isAfter(start)) &&
-                    (date.isEqual(end)   || date.isBefore(end))) {
+            if ((date.isEqual(start) || date.isAfter(start)) && (date.isEqual(end) || date.isBefore(end))) {
                 printFormatted(record);
             }
         }
@@ -229,12 +228,7 @@ public class AccountingLedgerApplication {
                 String[] tokens = line.split("\\|", -1);
 
                 // Skip header lines anywhere (case-insensitive)
-                if (tokens.length >= 5
-                        && tokens[0].trim().equalsIgnoreCase("date")
-                        && tokens[1].trim().equalsIgnoreCase("time")
-                        && tokens[2].trim().equalsIgnoreCase("description")
-                        && tokens[3].trim().equalsIgnoreCase("vendor")
-                        && tokens[4].trim().equalsIgnoreCase("amount")) {
+                if (tokens.length >= 5 && tokens[0].trim().equalsIgnoreCase("date") && tokens[1].trim().equalsIgnoreCase("time") && tokens[2].trim().equalsIgnoreCase("description") && tokens[3].trim().equalsIgnoreCase("vendor") && tokens[4].trim().equalsIgnoreCase("amount")) {
                     continue;
                 }
 
@@ -262,13 +256,6 @@ public class AccountingLedgerApplication {
     }
 
     private static void printFormatted(Transaction record) {
-        System.out.printf(
-                "type: %s  | %s | %s %s | %s | %.2f%n",
-                record.transactionType(),
-                record.getDescription(),
-                record.getDate(), record.getTime(),
-                record.getVendor(),
-                record.getAmount()
-        );
+        System.out.printf("type: %s  | %s | %s %s | %s | %.2f%n", record.transactionType(), record.getDescription(), record.getDate(), record.getTime(), record.getVendor(), record.getAmount());
     }
 }
