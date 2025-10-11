@@ -125,7 +125,7 @@ public class AccountingLedgerApplication {
                 case 2 -> printPreviousMonth();
                 case 3 -> printYearToDate();
                 case 4 -> printPreviousYear();
-                case 5 -> searchByVendor();
+                case 5 -> searchMenu();
                 case 0 -> {
                     if (sc.hasNextLine()) sc.nextLine();
                     System.out.println("Exiting...");
@@ -141,27 +141,56 @@ public class AccountingLedgerApplication {
 
     }
 
+    private static void searchMenu() {
+        int operation = -1;
+        while (operation != 0) {
+
+            System.out.println("""
+                    
+                    REPORT MENU
+                    What would you like to search by?
+                    1) Vendor Name
+                    2) Transaction Description
+                    0) Back
+                    Enter command:
+                    """);
+            operation = sc.nextInt();
+            switch (operation) {
+                case 1 -> searchByVendor();
+                case 2 -> searchByDescription();
+                case 0 -> {
+                    if (sc.hasNextLine()) sc.nextLine();
+                    System.out.println("Exiting...");
+                }
+                default -> {
+                    //catch all else
+                    System.out.println("Invalid operation... Try again or press 0 to quit");
+
+                }
+            }
+        }
+    }
+
     private static void searchByVendor() {
         searchByField(Transaction::getVendor, "vendor name");
     }
 
     private static void searchByField(Function<Transaction, String> getter, String prompt) {
         if (sc.hasNextLine()) sc.nextLine();
-
         System.out.print("Enter " + prompt + ": ");
         String userInput = sc.nextLine().trim().toLowerCase();
 
-        List<Transaction> copy = new ArrayList<>(ledger);
-        copy.sort(BY_DATETIME_DESC);
+        List<Transaction> ledgerCopy = new ArrayList<>(ledger);
+        ledgerCopy.sort(BY_DATETIME_DESC);
 
-        for (Transaction record : copy) {
+        for (Transaction record : ledgerCopy) {
             String field = getter.apply(record);
             if (field != null && field.toLowerCase().contains(userInput)) {
                 printFormatted(record);
             }
         }
-
     }
+
     private static void searchByDescription() {
         searchByField(Transaction::getDescription, "transaction description");
     }
@@ -170,7 +199,7 @@ public class AccountingLedgerApplication {
         LocalDate today = LocalDate.now();
         int prevYear = today.getYear() - 1;
         LocalDate firstDayPrevYear = LocalDate.of(prevYear, 1, 1);
-        LocalDate lastDayPrevYear  = LocalDate.of(prevYear, 12, 31);
+        LocalDate lastDayPrevYear = LocalDate.of(prevYear, 12, 31);
         printByDuration(firstDayPrevYear, lastDayPrevYear);
     }
 
