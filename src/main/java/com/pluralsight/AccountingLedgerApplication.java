@@ -86,7 +86,7 @@ public class AccountingLedgerApplication {
             switch (operation) {
                 case 'a' -> printAllLatest();
                 case 'd' -> printAllDeposits();
-                case 'p' -> printAllPayments();
+                case 'p' -> printByTypeSorted("credit");
 //                case 'r' ->
                 case 'h' -> System.out.println("Exiting...");
                 default -> {
@@ -99,7 +99,7 @@ public class AccountingLedgerApplication {
         }
     }
 
-    private static void printByType(String transactionType) {
+    private static void printByTypeSorted(String transactionType) {
         // here I will normalize the input first null or anything else means "all"
         String type = transactionType == null ? "all" : transactionType.toLowerCase();
 
