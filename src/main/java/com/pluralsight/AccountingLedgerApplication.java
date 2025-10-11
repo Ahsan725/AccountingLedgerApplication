@@ -110,10 +110,10 @@ public class AccountingLedgerApplication {
     }
 
     private static void printAllDeposits() {
-        List<Transaction> copy = new ArrayList<>(ledger);
-        copy.sort(BY_DATETIME_DESC);
-        for (Transaction record : copy) {
-            if (record.getAmount() > 0) {
+        List<Transaction> ledgerCopy = new ArrayList<>(ledger);
+        ledgerCopy.sort(BY_DATETIME_DESC);//sort the Ledger Copy to be in sorted format by latest
+        for (Transaction record : ledgerCopy) {//for every Transaction in ledger Copy
+            if (record.getAmount() > 0) {//this will print all the credits
                 printFormatted(record);
             }
         }
