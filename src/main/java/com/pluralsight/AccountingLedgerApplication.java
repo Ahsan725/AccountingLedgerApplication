@@ -53,7 +53,10 @@ public class AccountingLedgerApplication {
                     performTransaction(false); //calling helper function with a boolean flag to indicate transaction type
                 }
                 case 'l' -> ledgerMenu();
-                case 'x' -> System.out.println("Exiting...");
+                case 'x' -> {
+                    if (sc.hasNextLine()) sc.nextLine();
+                    System.out.println("Exiting...");
+                }
                 default -> {
                     //catch all else
                     System.out.println("Invalid operation... Try again or press X to quit");
@@ -85,7 +88,10 @@ public class AccountingLedgerApplication {
                 case 'd' -> printByTypeSorted("debit");
                 case 'p' -> printByTypeSorted("credit");
                 case 'r' -> reportsMenu();
-                case 'h' -> System.out.println("Exiting...");
+                case 'h' -> {
+                    if (sc.hasNextLine()) sc.nextLine();
+                    System.out.println("Exiting...");
+                }
                 default -> {
                     //catch all else
                     System.out.println("Invalid operation... Try again or press X to quit");
@@ -138,11 +144,10 @@ public class AccountingLedgerApplication {
         //used yearMonth from java time to do calendric arithmetic as Paul calls it
         java.time.YearMonth prev = java.time.YearMonth.from(today).minusMonths(1); //then previous month
         LocalDate firstOfPrevious = prev.atDay(1);//then the first day of prev month
-        LocalDate lastOfPrevious  = prev.atEndOfMonth(); //then last day of the prev month
+        LocalDate lastOfPrevious = prev.atEndOfMonth(); //then last day of the prev month
 
         printByDuration(firstOfPrevious, lastOfPrevious);
     }
-
 
     private static void printMonthToDate() {
         LocalDate today = LocalDate.now();
