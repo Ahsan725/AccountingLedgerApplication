@@ -153,6 +153,7 @@ public class AccountingLedgerApplication {
                     What would you like to search by?
                     1) Vendor Name
                     2) Transaction Description
+                    3) Search for a specific transaction
                     0) Back
                     Enter command:
                     """);
@@ -160,6 +161,7 @@ public class AccountingLedgerApplication {
             switch (operation) {
                 case 1 -> searchByVendor();
                 case 2 -> searchByDescription();
+                case 3 -> customSearch();
                 case 0 -> {
                     if (sc.hasNextLine()) sc.nextLine();
                     System.out.println("Exiting... ");
@@ -171,6 +173,89 @@ public class AccountingLedgerApplication {
                 }
             }
         }
+    }
+
+    private static void customSearch() {
+        // If a previous menu read used nextInt/nextDouble, a newline may be left in the buffer.
+        // This consumes it so the next nextLine() works as expected.
+        if (sc.hasNextLine()) sc.nextLine(); // clear leftover newline
+
+        System.out.println("CUSTOM SEARCH");
+        // Prompt for optional start date filter
+        System.out.print("Start Date (YYYY-MM-DD) or leave it blank: ");
+        String startDateInput = sc.nextLine().trim(); // raw user input for start date
+        // Prompt for optional end date filter
+        System.out.print("End Date (YYYY-MM-DD) or leave it blank: ");
+        String endDateInput = sc.nextLine().trim(); // raw user input for end date
+        // Prompt for optional description substring filter
+        System.out.print("Description contains (blank to skip): ");
+        String descriptionInput = sc.nextLine().trim(); // raw user input for description
+        // Prompt for optional vendor substring filter
+        System.out.print("Vendor contains (blank to skip): ");
+        String vendorInput = sc.nextLine().trim(); // raw user input for vendor
+        // Prompt for optional exact amount filter
+        System.out.print("Amount (exact, e.g., 123.45) or leave it blank: ");
+        String amountInput = sc.nextLine().trim(); // raw user input for amount
+
+        // Parsed values used for filtering null means do not filter on that field
+        LocalDate startDate = null, endDate = null;
+        Double amountQuery = null;
+
+        // Try to parse start date if provided; ignore errors and keep it null if bad
+        try {
+            if (!startDateInput.isEmpty()) startDate = LocalDate.parse(startDateInput);
+        } catch (Exception ignore) { }
+
+        // Try to parse end date if provided; ignore errors and keep it null if bad
+        try {
+            if (!endDateInput.isEmpty()) endDate = LocalDate.parse(endDateInput);
+        } catch (Exception ignore) { }
+
+        // Try to parse amount if provided; ignore errors and keep it null if bad
+        try {
+            if (!amountInput.isEmpty()) amountQuery = Double.parseDouble(amountInput);
+        } catch (Exception ignore) { }
+
+        // Normalize text queries to lowercase for case-insensitive matching; null means no filter
+        String descriptionQuery = descriptionInput.isEmpty() ? null : descriptionInput.toLowerCase();
+        String vendorQuery = vendorInput.isEmpty() ? null : vendorInput.toLowerCase();
+
+        // Work on a copy so we do not reorder the main ledger list
+        List<Transaction> ledgerCopy = new ArrayList<>(ledger);
+        // Sort newest first by your static comparator
+        ledgerCopy.sort(BY_DATETIME_DESC); // latest first
+
+        // Track whether any record matched, to show a message if none do
+        boolean anyPrinted = false;
+
+        // Scan through each transaction in newest first order
+        for (Transaction record : ledgerCopy) {
+            // Grab the transaction date once to avoid repeated calls
+            LocalDate transactionDate = record.getDate();
+
+            // If start date is set, skip anything before it
+            if (startDate != null && transactionDate.isBefore(startDate)) continue;
+            // If end date is set, skip anything after it
+            if (endDate != null && transactionDate.isAfter(endDate)) continue;
+
+            // If description filter is set, require a case-insensitive substring match
+            if (descriptionQuery != null &&
+                    !record.getDescription().toLowerCase().contains(descriptionQuery)) continue;
+
+            // If vendor filter is set, require a case-insensitive substring match
+            if (vendorQuery != null &&
+                    !record.getVendor().toLowerCase().contains(vendorQuery)) continue;
+
+            // If amount filter is set, require exact match on double
+            if (amountQuery != null && record.getAmount() != amountQuery) continue;
+
+            // If we reach here, the record passed all active filters, so print it
+            printFormatted(record);
+            anyPrinted = true; // mark that we printed at least one result
+        }
+
+        // If nothing matched, let the user know
+        if (!anyPrinted) System.out.println("No transactions match your filters.");
     }
 
     private static void searchByVendor() {
