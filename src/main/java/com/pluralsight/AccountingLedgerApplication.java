@@ -72,4 +72,14 @@ public class AccountingLedgerApplication {
 
     }
 
+    private static Transaction parseAndCreateTransaction(String line) {
+        var tokens = line.split("\\|"); //2023-04-15|10:13:25|ergonomic keyboard|Amazon|-89.50
+        LocalDate date       = LocalDate.parse(tokens[0].trim()); // "2023-04-15"
+        LocalTime time       = LocalTime.parse(tokens[1].trim()); // "10:13:25"
+        String description   = tokens[2].trim();
+        String vendor        = tokens[3].trim();
+        double amount        = Double.parseDouble(tokens[4].trim());
+
+        return new Transaction(date, time, description, vendor, amount);
+    }
 }
