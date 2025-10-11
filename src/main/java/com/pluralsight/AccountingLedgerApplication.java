@@ -144,6 +144,7 @@ public class AccountingLedgerApplication {
     private static void searchByVendor() {
         searchByField(Transaction::getVendor, "vendor name");
     }
+
     private static void searchByField(Function<Transaction, String> getter, String prompt) {
         if (sc.hasNextLine()) sc.nextLine();
 
