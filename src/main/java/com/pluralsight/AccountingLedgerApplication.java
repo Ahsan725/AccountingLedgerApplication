@@ -96,14 +96,7 @@ public class AccountingLedgerApplication {
     private static void printAllDeposits() {
         for (Transaction record : ledger){
             if (record.transactionType().equalsIgnoreCase("debit")){
-                System.out.printf(
-                        "type: %s  | %s | %s %s | %s | %.2f%n",
-                        record.transactionType(),
-                        record.getDescription(),
-                        record.getDate(), record.getTime(),
-                        record.getVendor(),
-                        record.getAmount()
-                );
+               printFormatted(record);
             }
         }
     }
