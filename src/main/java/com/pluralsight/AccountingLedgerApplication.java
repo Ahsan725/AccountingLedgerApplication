@@ -14,15 +14,15 @@ import java.util.Scanner;
 
 public class AccountingLedgerApplication {
 
-    //Static variables
-    static Scanner sc = new Scanner(System.in); //added a static Scanner to avoid passing it to methods repeatedly
-    static String fileName = "transactions.csv";//file we will read from and write to
-    static ArrayList<Transaction> ledger = new ArrayList<>();
     //static comparator
     private static final Comparator<Transaction> BY_DATETIME_DESC =
             Comparator.comparing(Transaction::getDate)
                     .thenComparing(Transaction::getTime)
                     .reversed();
+    //Static variables
+    static Scanner sc = new Scanner(System.in); //added a static Scanner to avoid passing it to methods repeatedly
+    static String fileName = "transactions.csv";//file we will read from and write to
+    static ArrayList<Transaction> ledger = new ArrayList<>();
 
     public static void main(String[] args) {
 
@@ -100,17 +100,17 @@ public class AccountingLedgerApplication {
     }
 
     private static void printAllPayments() {
-        for (Transaction record : ledger){
-            if (record.transactionType().equalsIgnoreCase("credit")){
+        for (Transaction record : ledger) {
+            if (record.transactionType().equalsIgnoreCase("credit")) {
                 printFormatted(record);
             }
         }
     }
 
     private static void printAllDeposits() {
-        for (Transaction record : ledger){
-            if (record.transactionType().equalsIgnoreCase("debit")){
-               printFormatted(record);
+        for (Transaction record : ledger) {
+            if (record.transactionType().equalsIgnoreCase("debit")) {
+                printFormatted(record);
             }
         }
     }
@@ -200,17 +200,14 @@ public class AccountingLedgerApplication {
 
     private static void printAllLatest() {
         //could use stream here
-            List<Transaction> copy = new ArrayList<>(ledger); // making a copy to not change the order of the original ledger
-            copy.sort(BY_DATETIME_DESC);                      // newest first
-            for (Transaction record : copy) {
-                printFormatted(record);
-            }
-
-        //can also be written as:  .forEach(AccountingLedgerApplication::printFormatted); but I chose the above
-        //to be explicit and be easier to read and understand
+        List<Transaction> copy = new ArrayList<>(ledger); // making a copy to not change the order of the original ledger
+        copy.sort(BY_DATETIME_DESC);                      // I am using the custom comparator that sorts by latest first
+        for (Transaction record : copy) {
+            printFormatted(record);
+        }
     }
 
-    private static void printFormatted(Transaction record){
+    private static void printFormatted(Transaction record) {
         System.out.printf(
                 "type: %s  | %s | %s %s | %s | %.2f%n",
                 record.transactionType(),
