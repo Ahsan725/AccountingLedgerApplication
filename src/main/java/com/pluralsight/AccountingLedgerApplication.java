@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
+import java.util.function.Function;
 
 public class AccountingLedgerApplication {
 
@@ -141,31 +142,27 @@ public class AccountingLedgerApplication {
     }
 
     private static void searchByVendor() {
-        String vendorName;
-        sc.nextLine();
-        System.out.println("Enter name of the vendor: ");
-        vendorName = sc.nextLine();
-
-        for (Transaction record : ledger){
-            if (record.getVendor().toLowerCase().contains(vendorName.toLowerCase())){
-                printFormatted(record);
-            }
-        }
+        searchByField(Transaction::getVendor, "vendor name");
     }
-    private static void searchByField(String getMethod) {
-        String userInput;
-        sc.nextLine();
-        System.out.println("Enter name of the vendor: ");
-        userInput = sc.nextLine();
+    private static void searchByField(Function<Transaction, String> getter, String prompt) {
+        if (sc.hasNextLine()) sc.nextLine();
 
-        for (Transaction record : ledger){
-            if (record.{getMethod}.toLowerCase().contains(userInput.toLowerCase())){
+        System.out.print("Enter " + prompt + ": ");
+        String userInput = sc.nextLine().trim().toLowerCase();
+
+        List<Transaction> copy = new ArrayList<>(ledger);
+        copy.sort(BY_DATETIME_DESC);
+
+        for (Transaction record : copy) {
+            String field = getter.apply(record);
+            if (field != null && field.toLowerCase().contains(userInput)) {
                 printFormatted(record);
             }
         }
+
     }
     private static void searchByDescription() {
-        searchByField("getDescription()");
+        searchByField(Transaction::getDescription, "transaction description");
     }
 
     private static void printPreviousYear() {
