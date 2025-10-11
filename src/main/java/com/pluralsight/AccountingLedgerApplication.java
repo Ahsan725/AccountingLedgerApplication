@@ -40,10 +40,15 @@ public class AccountingLedgerApplication {
                     Enter command:
                     """);
             operation = sc.nextLine().toLowerCase().charAt(0);
-
             switch (operation) {
-                case 'd' -> makeDeposit();
-                case 'p' -> makePayment();
+                case 'd' -> {
+                    //since we are making a deposit we will only allow positive transaction
+                    performTransaction(true); //calling helper function with a boolean flag to indicate transaction type
+                }
+                case 'p' -> {
+                    //since we are making a payment we will only allow positive transaction
+                    performTransaction(false); //calling helper function with a boolean flag to indicate transaction type
+                }
 //                case 'l' -> displayLedger();
                 case 'x' -> System.out.println("Exiting...");
                 default -> {
@@ -54,15 +59,6 @@ public class AccountingLedgerApplication {
             }
 
         }
-    }
-
-    private static void makePayment() {
-       performTransaction(false);
-    }
-
-    private static void makeDeposit() {
-        //since we are making a deposit we will only allow positive transaction
-        performTransaction(true);
     }
 
     private static void performTransaction(boolean depositOnly) {
@@ -104,8 +100,6 @@ public class AccountingLedgerApplication {
         // for testing
         printLatest();
     }
-
-
 
     private static void readFromFileAndAddToLedger() {
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
@@ -166,5 +160,4 @@ public class AccountingLedgerApplication {
                         record.getAmount()
                 ));
     }
-
 }
