@@ -133,10 +133,7 @@ public class AccountingLedgerApplication {
     private static void printMonthToDate() {
         LocalDate today = LocalDate.now();
         LocalDate month = today.withDayOfMonth(1);
-
         printByDuration(month, today);
-
-
     }
 
     private static void printByDuration(LocalDate start, LocalDate end) {
@@ -148,7 +145,7 @@ public class AccountingLedgerApplication {
         }
         ArrayList<Transaction> ledgerCopy = new ArrayList<>(ledger);
         ledgerCopy.sort(BY_DATETIME_DESC); //latest first
-
+        System.out.println("Displaying All Transactions between " + start + " and " + end);
         for (Transaction record : ledgerCopy) {
             LocalDate date = record.getDate();
 
