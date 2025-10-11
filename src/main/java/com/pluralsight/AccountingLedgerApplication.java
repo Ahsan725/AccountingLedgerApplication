@@ -21,8 +21,8 @@ public class AccountingLedgerApplication {
     public static void main(String[] args) {
 
         //This method displays the options and serves as the main screen
-        readFromFileAndAddToLedger();
-        showMainMenu();
+        readFromFileAndAddToLedger(); //load transactions into the program
+        showMainMenu(); //displays main menu
     }
 
     private static void showMainMenu() {
@@ -42,7 +42,7 @@ public class AccountingLedgerApplication {
             operation = sc.nextLine().toLowerCase().charAt(0);
 
             switch (operation) {
-//                case 'd' -> depositsMainMenu();
+                case 'd' -> depositsMainMenu();
 //                case 'p' -> paymentsMainMenu();
 //                case 'l' -> displayLedger();
                 case 'x' -> System.out.println("Exiting...");
@@ -54,6 +54,33 @@ public class AccountingLedgerApplication {
             }
 
         }
+    }
+
+    private static void depositsMainMenu() {
+        String description;
+        String vendor;
+        double amount;
+        System.out.println("DEPOSIT SCREEN");
+//        sc.nextLine();
+        System.out.println("Enter the Transaction Description: ");
+        description = sc.nextLine();
+
+        System.out.println("Enter the name of the vendor: ");
+        vendor = sc.nextLine();
+
+        System.out.println("Enter the amount: ");
+        amount = sc.nextDouble();
+
+        LocalDate date = LocalDate.now();
+        LocalTime time = LocalTime.now().withNano(0);
+        sc.nextLine();
+
+        //create a transaction object
+        ledger.add(new Transaction(date, time, description, vendor, amount));
+        System.out.println("Deposit added successfully!");
+
+        //for testing
+        printLatest();
     }
 
     private static void readFromFileAndAddToLedger() {
@@ -100,6 +127,7 @@ public class AccountingLedgerApplication {
     }
 
     private static void printLatest() {
+        //using stream here
         ledger.stream()
                 .sorted(Comparator
                         .comparing(Transaction::getDate)
@@ -115,16 +143,4 @@ public class AccountingLedgerApplication {
                 ));
     }
 
-
-    private static Transaction parseAndCreateTransaction(String line) {
-        var tokens = line.split("\\|"); //2023-04-15|10:13:25|ergonomic keyboard|Amazon|-89.50
-        if (tokens.length != 5) throw new IllegalArgumentException("Expected 5 fields, got " + tokens.length);
-        LocalDate date = LocalDate.parse(tokens[0].trim()); // "2023-04-15"
-        LocalTime time = LocalTime.parse(tokens[1].trim()); // "10:14:25"
-        String description = tokens[2].trim();
-        String vendor = tokens[3].trim();
-        double amount = Double.parseDouble(tokens[4].trim());
-
-        return new Transaction(date, time, description, vendor, amount);
-    }
 }
