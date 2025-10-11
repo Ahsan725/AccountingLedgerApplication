@@ -19,7 +19,7 @@ public class AccountingLedgerApplication {
 
 
         //This method displays the options and serves as the main screen
-//        readFromFileAndAdd();
+        readFromFileAndAdd();
         showMainMenu();
     }
 
@@ -52,6 +52,24 @@ public class AccountingLedgerApplication {
             }
 
         }
+    }
+
+    private static void readFromFileAndAdd() {
+        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+            String line;
+
+
+            while ((line = br.readLine()) != null) {
+                Transaction transaction1 = parseAndCreateTransaction(line);
+                System.out.println("type: " + transaction1.getTransactionType()+ ", " + transaction1.getDescription());
+                System.out.println("date: " + transaction1.getDate()+ ", " + transaction1.getTime());
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println("ERROR: The file was not found at the specified path. Check your file name and location.");
+        } catch (IOException e) {
+            System.err.println("A general I/O error occurred while reading the file: " + e.getMessage());
+        }
+
     }
 
 }
