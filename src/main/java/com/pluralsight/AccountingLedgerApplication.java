@@ -80,7 +80,7 @@ public class AccountingLedgerApplication {
             switch (operation) {
                 case 'a' -> printAllLatest();
                 case 'd' -> printAllDeposits();
-//                case 'p' ->
+                case 'p' -> printAllPayments();
 //                case 'r' ->
                 case 'h' -> System.out.println("Exiting...");
                 default -> {
@@ -90,6 +90,14 @@ public class AccountingLedgerApplication {
                 }
             }
 
+        }
+    }
+
+    private static void printAllPayments() {
+        for (Transaction record : ledger){
+            if (record.transactionType().equalsIgnoreCase("credit")){
+                printFormatted(record);
+            }
         }
     }
 
