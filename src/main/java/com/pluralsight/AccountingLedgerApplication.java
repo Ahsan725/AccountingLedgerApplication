@@ -230,8 +230,6 @@ public class AccountingLedgerApplication {
         ledger.add(new Transaction(date, time, description, vendor, amount));
         System.out.println(depositOnly ? "Deposit added successfully!" : "Payment added successfully!");
 
-        // for testing
-        printByTypeSorted("all");
     }
 
     private static void readFromFileAndAddToLedger() {
@@ -263,8 +261,6 @@ public class AccountingLedgerApplication {
                     System.out.println("Bad Input: Skipping a row..."); //skips a row and keeps the program running
                 }
             }
-
-            printByTypeSorted("all"); //only for testing right now
         } catch (FileNotFoundException e) {
             System.err.println("ERROR: File not found: " + fileName);
         } catch (IOException e) {
