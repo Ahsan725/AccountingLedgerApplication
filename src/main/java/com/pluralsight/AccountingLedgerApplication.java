@@ -110,8 +110,10 @@ public class AccountingLedgerApplication {
     }
 
     private static void printAllDeposits() {
-        for (Transaction record : ledger) {
-            if (record.transactionType().equalsIgnoreCase("debit")) {
+        List<Transaction> copy = new ArrayList<>(ledger);
+        copy.sort(BY_DATETIME_DESC);
+        for (Transaction record : copy) {
+            if (record.getAmount() > 0) {
                 printFormatted(record);
             }
         }
