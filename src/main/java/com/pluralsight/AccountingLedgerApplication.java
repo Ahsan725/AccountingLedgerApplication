@@ -141,6 +141,16 @@ public class AccountingLedgerApplication {
 
     private static void printByDuration(LocalDate start, LocalDate end) {
 
+        ArrayList<Transaction> ledgerCopy = new ArrayList<>(ledger);
+        ledgerCopy.sort(BY_DATETIME_DESC); //latest first
+
+        for (Transaction record : ledgerCopy) {
+            LocalDate date = record.getDate();
+            if ((date.isEqual(start) || date.isAfter(start)) &&
+                    (date.isEqual(end)   || date.isBefore(end))) {
+                printFormatted(record);
+            }
+        }
     }
 
     private static void printByTypeSorted(String transactionType) {
