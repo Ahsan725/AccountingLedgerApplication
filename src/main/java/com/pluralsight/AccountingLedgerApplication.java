@@ -207,15 +207,6 @@ public class AccountingLedgerApplication {
         }
     }
 
-    private static void printAllLatest() {
-        //could use stream here
-        List<Transaction> copy = new ArrayList<>(ledger); // making a copy to not change the order of the original ledger
-        copy.sort(BY_DATETIME_DESC);                      // I am using the custom comparator that sorts by latest first
-        for (Transaction record : copy) {
-            printFormatted(record);
-        }
-    }
-
     private static void printFormatted(Transaction record) {
         System.out.printf(
                 "type: %s  | %s | %s %s | %s | %.2f%n",
