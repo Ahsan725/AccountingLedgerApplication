@@ -7,10 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class AccountingLedgerApplication {
 
@@ -87,7 +84,7 @@ public class AccountingLedgerApplication {
                 case 'a' -> printByTypeSorted("all");
                 case 'd' -> printByTypeSorted("debit");
                 case 'p' -> printByTypeSorted("credit");
-//                case 'r' ->
+                case 'r' -> reportsMenu();
                 case 'h' -> System.out.println("Exiting...");
                 default -> {
                     //catch all else
@@ -97,6 +94,53 @@ public class AccountingLedgerApplication {
             }
 
         }
+    }
+
+    private static void reportsMenu() {
+        int operation = -1;
+        while (operation != 0) {
+
+            System.out.println("""
+                    
+                    REPORT MENU
+                    What would you like to do?
+                    1) Month To Date
+                    2) Previous Month
+                    3) Year To Date
+                    4) Previous Year
+                    5) Search By Vendor
+                    0) Back
+                    Enter command:
+                    """);
+            operation = sc.nextInt();
+            switch (operation) {
+                case 1 -> printMonthToDate();
+//                case 2 -> printByTypeSorted("debit");
+//                case 3 -> printByTypeSorted("credit");
+//                case 4 -> reportsMenu();
+//                case 5 -> System.out.println("Exiting...");
+                default -> {
+                    //catch all else
+                    System.out.println("Invalid operation... Try again or press 0 to quit");
+
+                }
+            }
+
+        }
+
+    }
+
+    private static void printMonthToDate() {
+        LocalDate today = LocalDate.now();
+        LocalDate month = today.withDayOfMonth(1);
+
+        printByDuration(month, today);
+
+
+    }
+
+    private static void printByDuration(LocalDate start, LocalDate end) {
+
     }
 
     private static void printByTypeSorted(String transactionType) {
