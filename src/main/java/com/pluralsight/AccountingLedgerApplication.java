@@ -152,6 +152,21 @@ public class AccountingLedgerApplication {
             }
         }
     }
+    private static void searchByField(String getMethod) {
+        String userInput;
+        sc.nextLine();
+        System.out.println("Enter name of the vendor: ");
+        userInput = sc.nextLine();
+
+        for (Transaction record : ledger){
+            if (record.{getMethod}.toLowerCase().contains(userInput.toLowerCase())){
+                printFormatted(record);
+            }
+        }
+    }
+    private static void searchByDescription() {
+        searchByField("getDescription()");
+    }
 
     private static void printPreviousYear() {
         LocalDate today = LocalDate.now();
