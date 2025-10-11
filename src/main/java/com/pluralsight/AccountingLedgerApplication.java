@@ -141,11 +141,17 @@ public class AccountingLedgerApplication {
 
     private static void printByDuration(LocalDate start, LocalDate end) {
         //will add guardrails later
+        if (start.isAfter(end)) {
+            LocalDate tmp = start;
+            start = end;
+            end = tmp;
+        }
         ArrayList<Transaction> ledgerCopy = new ArrayList<>(ledger);
         ledgerCopy.sort(BY_DATETIME_DESC); //latest first
 
         for (Transaction record : ledgerCopy) {
             LocalDate date = record.getDate();
+
             if ((date.isEqual(start) || date.isAfter(start)) && (date.isEqual(end) || date.isBefore(end))) {
                 printFormatted(record);
             }
