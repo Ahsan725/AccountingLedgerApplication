@@ -57,47 +57,20 @@ public class AccountingLedgerApplication {
     }
 
     private static void makePayment() {
-        String description;
-        String vendor;
-        double amount;
-        System.out.println("DEPOSIT SCREEN");
-//        sc.nextLine();
-        System.out.println("Enter the Transaction Description: ");
-        description = sc.nextLine();
-
-        System.out.println("Enter the name of the vendor: ");
-        vendor = sc.nextLine();
-
-        System.out.println("Enter the amount: ");
-        amount = sc.nextDouble();
-
-        LocalDate date = LocalDate.now();
-        LocalTime time = LocalTime.now().withNano(0);
-        sc.nextLine();
-
-        //create a transaction object
-        ledger.add(new Transaction(date, time, description, vendor, amount));
-        System.out.println("Deposit added successfully!");
-
-        //for testing
-        printLatest();
+       performTransaction(false);
     }
 
     private static void makeDeposit() {
         //since we are making a deposit we will only allow positive transaction
         performTransaction(true);
-
     }
 
-    private static void performTransaction(boolean positiveOnly) {
-        System.out.println(positiveOnly ? "DEPOSIT SCREEN" : "PAYMENT SCREEN");
-
+    private static void performTransaction(boolean depositOnly) {
+        System.out.println(depositOnly ? "DEPOSIT SCREEN" : "PAYMENT SCREEN");
         // If method called nextInt/nextDouble earlier, clear the leftover newline first:
         if (sc.hasNextLine()) sc.nextLine();
-
         System.out.print("Enter the Transaction Description: ");
         String description = sc.nextLine();
-
         System.out.print("Enter the name of the vendor: ");
         String vendor = sc.nextLine();
 
@@ -107,11 +80,11 @@ public class AccountingLedgerApplication {
             if (sc.hasNextDouble()) {
                 amount = sc.nextDouble();
                 sc.nextLine(); // consume the newline left by nextDouble()
-                if (positiveOnly && amount < 0) {
+                if (depositOnly && amount < 0) {
                     System.out.println("Amount is negative! Enter a positive amount to make a deposit...");
                     continue;
                 }
-                if (!positiveOnly && amount > 0) {
+                if (!depositOnly && amount > 0) {
                     System.out.println("Amount is positive! Enter a negative amount to make a payment...");
                     continue;
                 }
@@ -123,10 +96,10 @@ public class AccountingLedgerApplication {
         }
 
         LocalDate date = LocalDate.now();
-        LocalTime time = LocalTime.now().withNano(0);
+        LocalTime time = LocalTime.now().withNano(0); //to get rid of extra nanoseconds at the end
 
         ledger.add(new Transaction(date, time, description, vendor, amount));
-        System.out.println(positiveOnly ? "Deposit added successfully!" : "Payment added successfully!");
+        System.out.println(depositOnly ? "Deposit added successfully!" : "Payment added successfully!");
 
         // for testing
         printLatest();
