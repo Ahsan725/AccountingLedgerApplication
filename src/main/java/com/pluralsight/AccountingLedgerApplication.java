@@ -49,8 +49,41 @@ public class AccountingLedgerApplication {
                     //since we are making a payment we will only allow positive transaction
                     performTransaction(false); //calling helper function with a boolean flag to indicate transaction type
                 }
-//                case 'l' -> displayLedger();
+                case 'l' -> ledgerMenu();
                 case 'x' -> System.out.println("Exiting...");
+                default -> {
+                    //catch all else
+                    System.out.println("Invalid operation... Try again or press X to quit");
+
+                }
+            }
+
+        }
+    }
+
+    private static void ledgerMenu() {
+        System.out.println("LEDGER MENU");
+        char operation = ' ';
+        while (operation != 'x') {
+
+            System.out.println("""
+                    
+                    LEDGER MENU
+                    What would you like to do?
+                    A) View All Transactions
+                    D) View Deposits Only
+                    P) View Payments Only
+                    R) View Reports
+                    H) Return to Home
+                    Enter command:
+                    """);
+            operation = sc.nextLine().toLowerCase().charAt(0);
+            switch (operation) {
+                case 'a' -> printAllLatest();
+//                case 'd' ->
+//                case 'p' ->
+//                case 'r' ->
+                case 'h' -> System.out.println("Exiting...");
                 default -> {
                     //catch all else
                     System.out.println("Invalid operation... Try again or press X to quit");
@@ -98,7 +131,7 @@ public class AccountingLedgerApplication {
         System.out.println(depositOnly ? "Deposit added successfully!" : "Payment added successfully!");
 
         // for testing
-        printLatest();
+        printAllLatest();
     }
 
     private static void readFromFileAndAddToLedger() {
@@ -136,7 +169,7 @@ public class AccountingLedgerApplication {
                 }
             }
 
-            printLatest(); //only for testing right now
+            printAllLatest(); //only for testing right now
         } catch (FileNotFoundException e) {
             System.err.println("ERROR: File not found: " + fileName);
         } catch (IOException e) {
@@ -144,7 +177,7 @@ public class AccountingLedgerApplication {
         }
     }
 
-    private static void printLatest() {
+    private static void printAllLatest() {
         //using stream here
         ledger.stream()
                 .sorted(Comparator
