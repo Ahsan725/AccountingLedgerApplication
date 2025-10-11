@@ -160,7 +160,7 @@ public class AccountingLedgerApplication {
                 case 2 -> searchByDescription();
                 case 0 -> {
                     if (sc.hasNextLine()) sc.nextLine();
-                    System.out.println("Exiting...");
+                    System.out.println("Exiting... ");
                 }
                 default -> {
                     //catch all else
