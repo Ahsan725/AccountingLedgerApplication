@@ -194,7 +194,7 @@ public class AccountingLedgerApplication {
         System.out.print("Vendor contains (blank to skip): ");
         String vendorInput = sc.nextLine().trim(); // raw user input for vendor
         // Prompt for optional exact amount filter
-        System.out.print("Amount (exact, e.g., 123.45) or leave it blank: ");
+        System.out.print("Amount or leave it blank: ");
         String amountInput = sc.nextLine().trim(); // raw user input for amount
 
         // Parsed values used for filtering null means do not filter on that field
@@ -204,17 +204,20 @@ public class AccountingLedgerApplication {
         // Try to parse start date if provided; ignore errors and keep it null if bad
         try {
             if (!startDateInput.isEmpty()) startDate = LocalDate.parse(startDateInput);
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {
+        }
 
         // Try to parse end date if provided; ignore errors and keep it null if bad
         try {
             if (!endDateInput.isEmpty()) endDate = LocalDate.parse(endDateInput);
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {
+        }
 
         // Try to parse amount if provided; ignore errors and keep it null if bad
         try {
             if (!amountInput.isEmpty()) amountQuery = Double.parseDouble(amountInput);
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {
+        }
 
         // Normalize text queries to lowercase for case-insensitive matching; null means no filter
         String descriptionQuery = descriptionInput.isEmpty() ? null : descriptionInput.toLowerCase();
