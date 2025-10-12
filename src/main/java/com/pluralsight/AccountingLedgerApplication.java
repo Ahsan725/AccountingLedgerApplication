@@ -391,6 +391,7 @@ public class AccountingLedgerApplication {
 
         Transaction record = new Transaction(date, time, description, vendor, amount);
         ledger.add(record);
+        DataStore.ledger.add(record); //for the webserver
         //cal the write to file method
         writeToFile(record);
         System.out.println(depositOnly ? "Deposit added successfully!" : "Payment added successfully!");
@@ -421,8 +422,7 @@ public class AccountingLedgerApplication {
         }
     }
 
-
-    private static void readFromFileAndAddToLedger() {
+    public static void readFromFileAndAddToLedger() {
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -445,8 +445,9 @@ public class AccountingLedgerApplication {
                     String description = tokens[2].trim();
                     String vendor = tokens[3].trim();
                     double amount = Double.parseDouble(tokens[4].trim());
-
-                    ledger.add(new Transaction(date, time, description, vendor, amount));
+                    Transaction record = new Transaction(date, time, description, vendor, amount);
+                    ledger.add(record);
+                    DataStore.ledger.add(record); // for webserver functionality
                 } catch (Exception ignore) {
                     System.out.println("Bad Input: Skipping a row..."); //skips a row and keeps the program running
                 }
