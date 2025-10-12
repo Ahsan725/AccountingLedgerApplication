@@ -1,10 +1,7 @@
 package com.pluralsight;
 //imports
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -392,10 +389,38 @@ public class AccountingLedgerApplication {
         LocalDate date = LocalDate.now();
         LocalTime time = LocalTime.now().withNano(0); //to get rid of extra nanoseconds at the end
 
-        ledger.add(new Transaction(date, time, description, vendor, amount));
+        Transaction record = new Transaction(date, time, description, vendor, amount);
+        ledger.add(record);
+        //cal the write to file method
+        writeToFile(record);
         System.out.println(depositOnly ? "Deposit added successfully!" : "Payment added successfully!");
 
     }
+
+    public static void writeToFile(Transaction record) {
+        System.out.println("Writing to file...");
+        if (fileName == null || fileName.isEmpty()) {
+            System.err.println("Output file name is not set. Cannot write.");
+            return;
+        }
+
+        try (FileWriter fw = new FileWriter(fileName, true);  //here I set append mode to true to prevent overwrite
+             BufferedWriter bw = new BufferedWriter(fw);
+             PrintWriter output = new PrintWriter(bw)) {
+
+            output.printf("%s|%s|%s|%s|%.2f%n",
+                    record.getDate(),
+                    record.getTime().toString(),
+                    record.getDescription(),
+                    record.getVendor(),
+                    record.getAmount());
+
+            System.out.println("Done!");
+        } catch (IOException e) {
+            System.err.println("Could not write to file: " + e.getMessage());
+        }
+    }
+
 
     private static void readFromFileAndAddToLedger() {
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
