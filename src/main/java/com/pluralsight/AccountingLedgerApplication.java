@@ -87,7 +87,6 @@ public class AccountingLedgerApplication {
                 case 'p' -> printByTypeSorted("credit");
                 case 'r' -> reportsMenu();
                 case 'h' -> {
-                    if (sc.hasNextLine()) sc.nextLine();
                     System.out.println("Exiting...");
                 }
                 default -> {
@@ -359,7 +358,7 @@ public class AccountingLedgerApplication {
     private static void performTransaction(boolean depositOnly) {
         System.out.println(depositOnly ? "DEPOSIT SCREEN" : "PAYMENT SCREEN");
         // If method called nextInt/nextDouble earlier, clear the leftover newline first:
-        if (sc.hasNextLine()) sc.nextLine();
+//        if (sc.hasNextLine()) sc.nextLine();
         System.out.print("Enter the Transaction Description: ");
         String description = sc.nextLine();
         System.out.print("Enter the name of the vendor: ");
