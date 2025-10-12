@@ -482,4 +482,27 @@ public class AccountingLedgerApplication {
         );
     }
 
+    //webserver methods
+    public static String formatTransaction(Transaction t) {
+        return String.format(
+                "%s | %-30s | %-18s | %10.2f | %-6s | %s",
+                t.getDate(), t.getDescription(), t.getVendor(),
+                t.getAmount(), t.transactionType(), t.getTime()
+        );
+    }
+
+    // Created a new method to use for webserver
+    public static List<Transaction> transactionsByDuration(LocalDate start, LocalDate end) {
+        if (start.isAfter(end)) {
+            LocalDate tmp = start; start = end; end = tmp;
+        }
+        LocalDate finalStart = start;
+        LocalDate finalEnd = end;
+        return ledger.stream()
+                .filter(t -> !t.getDate().isBefore(finalStart) && !t.getDate().isAfter(finalEnd))
+                .sorted(BY_DATETIME_DESC)
+                .toList();
+    }
+
+
 }
