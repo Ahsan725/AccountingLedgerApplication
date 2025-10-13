@@ -481,7 +481,6 @@ public class AccountingLedgerApplication {
                 timeString                   // zero-padded time
         );
     }
-
     //webserver methods
     public static String formatTransaction(Transaction t) {
         return String.format(
@@ -490,7 +489,6 @@ public class AccountingLedgerApplication {
                 t.getAmount(), t.transactionType(), t.getTime()
         );
     }
-
     // Created a new method to use for webserver
     public static List<Transaction> transactionsByDuration(LocalDate start, LocalDate end) {
         if (start.isAfter(end)) {
