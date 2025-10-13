@@ -1,0 +1,192 @@
+:root{
+  --bg: #0d0f13;
+  --panel: #131722;
+  --muted: #8ca2b3;
+  --text: #e8eef5;
+  --primary: #6aa6ff;
+  --accent: #9b86f7;
+  --pos: #2ecc71;
+  --neg: #ff6b6b;
+  --border: #20283a;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+*{ box-sizing: border-box; }
+html,body{ height:100%; }
+/* --- Replace your existing body rule with this --- */
+body{
+  margin:0;
+  font: 14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  color:var(--text);
+
+  /* Layered gradients to avoid harsh edges & banding */
+  background:
+    radial-gradient(1200px 900px at 12% -20%, #1b2234 0%, #121723 55%, #0d0f13 100%),
+    radial-gradient(900px 700px at 88% 120%, #151c2a 0%, rgba(21,28,42,0.0) 60%),
+    linear-gradient(180deg, #0d0f13 0%, #0b0e14 100%);
+  background-attachment: fixed, fixed, fixed;
+  background-repeat: no-repeat;
+  background-color: #0d0f13;
+
+  /* Smooth out subpixel transitions on some displays */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Create a new stacking context for the animated overlays below */
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* --- Add these: animated soft glow & subtle dither layer --- */
+
+/* Slowly rotating, blurred conic glow for “alive” feeling */
+body::before{
+  content:"";
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  background:
+    conic-gradient(from var(--spin, 0deg),
+      rgba(106,166,255,0.12),
+      rgba(155,134,247,0.10),
+      rgba(106,166,255,0.12),
+      rgba(155,134,247,0.10),
+      rgba(106,166,255,0.12)
+    );
+  filter: blur(80px);
+  opacity: .65;
+  animation: spin360 60s linear infinite;
+  pointer-events: none;
+}
+
+/* Fine moving grain to break up banding on large displays */
+body::after{
+  content:"";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(100px 100px at 0 0, rgba(255,255,255,0.006) 0 40%, transparent 41%) repeat,
+    radial-gradient(120px 120px at 50% 50%, rgba(255,255,255,0.004) 0 35%, transparent 36%) repeat;
+  background-size: 200px 200px, 220px 220px;
+  mix-blend-mode: soft-light;
+  opacity: .35;
+  animation: drift 24s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+/* Keyframes for the motion */
+@keyframes spin360{
+  to { --spin: 360deg; }
+}
+@keyframes drift{
+  0%   { transform: translate3d(0,0,0); }
+  100% { transform: translate3d(-3%, -2%, 0); }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce){
+  body::before, body::after { animation: none; }
+}
+
+
+/* Topbar */
+.topbar{
+  position: sticky; top:0; z-index: 10;
+  display:flex; justify-content: space-between; align-items:center;
+  padding:12px 20px; background: rgba(13,15,19,.7); backdrop-filter: blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.brand{ display:flex; align-items:center; gap:12px; }
+.logo{
+  width:40px; height:40px; border-radius:12px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display:grid; place-items:center; font-weight:700; color:white; box-shadow: var(--shadow);
+}
+.titles h1{ margin:0; font-size:18px; }
+.subtitle{ margin:0; color:var(--muted); font-size:12px; }
+.actions{ display:flex; gap:8px; }
+
+/* Layout */
+.container{ max-width:1100px; margin:24px auto; padding: 0 16px; }
+.grid.cards{
+  display:grid; grid-template-columns: repeat(4, minmax(0,1fr));
+  gap:16px; margin-bottom:16px;
+}
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  border:1px solid var(--border);
+  border-radius:16px; padding:16px; box-shadow: var(--shadow);
+}
+.kpi .kpi-label{ color:var(--muted); font-size:12px; }
+.kpi .kpi-value{ margin-top:6px; font-size:28px; font-weight:700; letter-spacing:.2px; }
+.kpi .kpi-value.pos{ color: var(--pos); }
+.kpi .kpi-value.neg{ color: var(--neg); }
+.kpi .kpi-sub{ color:var(--muted); font-size:12px; margin-top:4px; }
+
+/* Filters */
+.filters .filter-row{
+  display:grid; gap:12px;
+  grid-template-columns: repeat(7, minmax(0,1fr));
+}
+.field label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+input, select{
+  width:100%; background:#0f1320; color:var(--text);
+  border:1px solid var(--border); border-radius:10px; padding:10px 12px;
+  outline:none;
+}
+input::placeholder{ color:#6f7d8c; }
+.filter-actions{
+  display:flex; justify-content:space-between; align-items:center; margin-top:12px;
+}
+.chipbar{ display:flex; gap:8px; flex-wrap:wrap; }
+.chip{
+  background:#0f1320; color:var(--text); border:1px solid var(--border);
+  border-radius:999px; padding:8px 12px; cursor:pointer;
+}
+.chip:focus,.chip:hover{ border-color: var(--primary); }
+
+/* Buttons */
+.btn{
+  appearance:none; border:none; border-radius:10px; padding:10px 14px; cursor:pointer;
+  background:#1b2234; color:var(--text); border:1px solid var(--border);
+}
+.btn:hover{ border-color: var(--primary); }
+.btn.primary{ background: linear-gradient(135deg, var(--primary), var(--accent)); color:white; border:0; }
+.btn.outline{ background:transparent; border:1px solid var(--primary); color:var(--primary); }
+.btn.ghost{ background:transparent; border:1px solid var(--border); }
+
+/* Table */
+.table-wrap{ position:relative; }
+table{ width:100%; border-collapse: collapse; }
+thead th{
+  position: sticky; top:0; background: #0e1220; z-index: 1;
+  text-align:left; font-weight:600; color:var(--muted); padding:10px; border-bottom:1px solid var(--border);
+  cursor: pointer;
+}
+tbody td{
+  padding:12px 10px; border-bottom:1px solid var(--border);
+  vertical-align: middle;
+}
+th.num, td.num{ text-align:right; }
+.badge{
+  display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:600;
+}
+.badge.debit{ background: rgba(46,204,113,.12); color: var(--pos); }
+.badge.credit{ background: rgba(255,107,107,.12); color: var(--neg); }
+
+/* Empty state */
+.empty{
+  position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  color:var(--muted); gap:8px; background:transparent;
+}
+.hidden{ display:none; }
+.footerbar{
+  display:flex; justify-content:space-between; align-items:center; padding-top:10px; color:var(--muted);
+}
+
+/* Toast */
+.toast{
+  position: fixed; top: 100px; right: 18px; padding:12px 14px; border-radius:12px;
+  background: linear-gradient(90deg,rgba(0, 77, 184, 1) 10%, rgba(0, 140, 255, 1) 35%, rgba(0, 77, 184, 1) 100%); color: var(--text); border:1px solid var(--border); box-shadow: var(--shadow);
+}
