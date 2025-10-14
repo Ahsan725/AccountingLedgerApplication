@@ -56,6 +56,12 @@
                 <button class="chip" data-endpoint="/api/transactions/payments">Payments</button>
             </div>
 
+            <!-- User ID Search (New filter) -->
+            <div class="user-search-filter daterange">
+                <input type="number" id="input-user-id" placeholder="User ID" aria-label="Search by User ID" style="width: 120px;" />
+                <button id="btn-user-search" class="chip" data-endpoint="/api/transactions/user">User Activity</button>
+            </div>
+
             <!-- Right: inline date range -->
             <div class="daterange">
                 <input type="date" id="range-start" aria-label="Start date" />
@@ -64,6 +70,7 @@
             </div>
         </div>
     </section>
+
 
 
     <!-- Table -->
@@ -83,9 +90,7 @@
                 <tbody id="rows"></tbody>
             </table>
             <div id="empty" class="empty hidden">
-                <div class="icon">🗂️</div>
                 <div class="title">No records</div>
-                <div class="hint">Try switching between All, Deposits, or Payments.</div>
             </div>
         </div>
         <div class="footerbar">

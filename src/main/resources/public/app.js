@@ -1,4 +1,3 @@
-
 // Select a single element
 const $ = (sel) => document.querySelector(sel);
 
@@ -31,6 +30,24 @@ window.addEventListener("DOMContentLoaded", async () => {
     loadRange(start, end); // validate + fetch
   });
 
+  // --- NEW USER ID SEARCH LOGIC ---
+  const userIdInput = $("#input-user-id");
+  const userIdSearchButton = $("#btn-user-search");
+
+  // Event listener for the "Search User" button click
+  userIdSearchButton?.addEventListener("click", () => {
+    loadByUserId(userIdInput.value);
+  });
+
+  // Event listener to allow searching when the 'Enter' key is pressed in the input field
+  userIdInput?.addEventListener("keydown", (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        loadByUserId(userIdInput.value);
+    }
+  });
+  // ---------------------------------
+
   // Initial load: All transactions
   await load("/api/transactions", true);
 });
@@ -56,8 +73,16 @@ async function load(url, showToast = false) {
 
     if (showToast) toast(`Loaded ${viewData.length} transactions`);
   } catch (e) {
-    toast(`Load failed: ${e.message}`); // quick error message
-    console.error(e);
+    // If the API returns a 404 (Not Found) for a user ID, show an empty table but don't fail loudly.
+    if (e.message.includes("HTTP 404")) {
+        toast("No transactions found for that User ID.");
+        viewData = [];
+        renderTable();
+        renderKpis();
+    } else {
+        toast(`Load failed: ${e.message}`); // quick error message
+        console.error(e);
+    }
   }
 }
 
@@ -71,6 +96,31 @@ async function loadRange(start, end) {
   const url = `/api/transactions/range?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
   await load(url, true); // reuse loader
 }
+
+// --- NEW HELPER TO CALL USER ID ENDPOINT ---
+async function loadByUserId(userId) {
+  const trimmedId = userId ? String(userId).trim() : '';
+  const btn = $("#btn-user-search");
+
+  // Basic validation to ensure a number is entered
+  if (!trimmedId || isNaN(parseInt(trimmedId))) {
+    toast("Please enter a valid User ID (number).");
+    return;
+  }
+
+  // Get the base endpoint from the button's data attribute: /api/transactions/user
+  const baseUrl = btn?.dataset.endpoint;
+  if (!baseUrl) {
+    toast("Configuration error: Missing endpoint data attribute.");
+    return;
+  }
+
+  // Construct the full URL: /api/transactions/user/{userId}
+  const url = `${baseUrl}/${encodeURIComponent(trimmedId)}`;
+
+  await load(url, true); // reuse generic loader
+}
+// --------------------------------------------
 
 /* ===== Render: Table + KPIs ===== */
 
