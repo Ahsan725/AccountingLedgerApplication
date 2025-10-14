@@ -56,9 +56,9 @@ src/
  └─ main/
      ├─ java/com/pluralsight/
      │   ├─ AccountingLedgerApplication.java  # CLI App entrypoint
-     │   ├─ Utilities.java                    # Shared helpers (I/O, filters, permissions)
+     │   ├─ Utilities.java                    # methods (I/O, filters, permissions)
      │   ├─ Transaction.java                  # Transaction Class
-     │   ├─ User.java                         # User Class (id, name, pin, adminAccess)
+     │   ├─ User.java                         # User Class + user roles
      │   ├─ DataStore.java                    # In-memory ledger
      │   └─ WebServer.java                    # Javalin server + API routes
      └─ resources/
@@ -66,6 +66,8 @@ src/
              ├─ index.html                    # Web UI
              ├─ styles.css                    # Theme styles
              └─ app.js                        # UI logic (fetch + render)
+             
+             
 ```
 
 ## Data Format
