@@ -21,7 +21,7 @@ public final class Utilities {
     private Utilities() {
     } // constructor that prevents instantiation
 
-    public static void showMainMenu() {
+    public static void startCliApplication() {
         readFromFileAndAddToLedger(); //load transactions into the program
         char operation = ' ';
         while (operation != 'x') {
