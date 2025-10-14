@@ -38,7 +38,7 @@ public class WebServer {
 
     public static void main(String[] args) {
         // Load data
-        AccountingLedgerApplication.readFromFileAndAddToLedger();
+        Utilities.readFromFileAndAddToLedger();
         System.out.println("Loaded transactions: " + DataStore.ledger.size());
 
         // This is where I start the server
@@ -87,7 +87,7 @@ public class WebServer {
                         .status(400).result("start and end are required as YYYY-MM-DD");
                 return;
             }
-            var out = AccountingLedgerApplication.transactionsByDuration(start, end)
+            var out = Utilities.transactionsByDuration(start, end)
                     .stream().map(WebServer::toDto).toList();
             context
                     .json(out);
@@ -104,8 +104,8 @@ public class WebServer {
                         .status(400).result("start and end are required as YYYY-MM-DD");
                 return;
             }
-            var lines = AccountingLedgerApplication.transactionsByDuration(start, end)
-                    .stream().map(AccountingLedgerApplication::formatTransaction).toList();
+            var lines = Utilities.transactionsByDuration(start, end)
+                    .stream().map(Utilities::formatTransaction).toList();
             context
                     .header("Content-Type", "text/plain; charset=utf-8");
             context
