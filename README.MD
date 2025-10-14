@@ -139,7 +139,9 @@ GET /api/transactions/payments → Only amount < 0
 
 GET /api/transactions/user/{userID} → All transactions by user id
 
-GET /api/transactions/range?start=YYYY-MM-DD&end=YYYY-MM-DD → Date-range results (inclusive)
+GET /api/transactions/range?start=YYYY-MM-DD&end=YYYY-MM-DD 
+→ Date-range results (inclusive)
+
 ```
 
 ## Frontend (HTML/CSS/JS)
