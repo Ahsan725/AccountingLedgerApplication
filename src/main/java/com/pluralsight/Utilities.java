@@ -18,6 +18,7 @@ public final class Utilities {
     static String profilesFileName = "profiles.csv";
     static User currentUser;
     static HashMap<Integer, User> idToUser = new HashMap<>();
+    static Set<Transaction> seen = new HashSet<>(ledger);
 
     private Utilities() {
     } // constructor that prevents instantiation
@@ -36,6 +37,7 @@ public final class Utilities {
                     D) Add Deposits
                     P) Make Payment (Debit)
                     L) Ledger
+                    O) Log Out
                     X) Exit
                     Enter command:
                     """);
@@ -50,6 +52,7 @@ public final class Utilities {
                     performTransaction(false); //calling helper function with a boolean flag to indicate transaction type
                 }
                 case 'l' -> ledgerMenu();
+                case 'o' -> logOut();
                 case 'x' -> {
                     if (sc.hasNextLine()) sc.nextLine();
                     System.out.println("Exiting...");
@@ -141,6 +144,28 @@ public final class Utilities {
         } catch (IOException e) {
             System.err.println("I/O error reading " + profilesFileName + ": " + e.getMessage());
         }
+    }
+    // --- Helpers you call everywhere ---
+    private static boolean isAdmin() {
+        return currentUser != null && currentUser.isAdminAccess();
+    }
+
+    private static boolean canView(Transaction t) {
+        // Admin sees everything; users see only their own transactions
+        return isAdmin() || (currentUser != null && t.getUserId() == currentUser.getId());
+    }
+    /** Filter ledger to what the current user can see, and sort latest first. */
+    public static List<Transaction> visibleSorted() {
+        return ledger.stream()
+                .filter(Utilities::canView)
+                .sorted(BY_DATETIME_DESC)
+                .toList();
+    }
+
+    public static void logOut(){
+        System.out.println("Logging out... " + currentUser.getName());
+        currentUser = null;
+        startCliApplication();
     }
 
     private static void ledgerMenu() {
@@ -250,110 +275,92 @@ public final class Utilities {
     }
 
     private static void customSearch() {
-        // If a previous menu read used nextInt/nextDouble, a newline may be left in the buffer.
-        // This consumes it so the next nextLine() works as expected.
-        if (sc.hasNextLine()) sc.nextLine(); // clear leftover newline
+        // Clear any leftover newline from previous nextInt/nextDouble
+        if (sc.hasNextLine()) sc.nextLine();
 
         System.out.println("CUSTOM SEARCH");
-        // Prompt for optional start date filter
-        System.out.print("Start Date (YYYY-MM-DD) or leave it blank: ");
-        String startDateInput = sc.nextLine().trim(); // raw user input for start date
-        // Prompt for optional end date filter
-        System.out.print("End Date (YYYY-MM-DD) or leave it blank: ");
-        String endDateInput = sc.nextLine().trim(); // raw user input for end date
-        // Prompt for optional description substring filter
-        System.out.print("Description contains (blank to skip): ");
-        String descriptionInput = sc.nextLine().trim(); // raw user input for description
-        // Prompt for optional vendor substring filter
-        System.out.print("Vendor contains (blank to skip): ");
-        String vendorInput = sc.nextLine().trim(); // raw user input for vendor
-        // Prompt for optional exact amount filter
-        System.out.print("Amount or leave it blank: ");
-        String amountInput = sc.nextLine().trim(); // raw user input for amount
 
-        // Parsed values used for filtering null means do not filter on that field
+        System.out.print("Start Date (YYYY-MM-DD) or leave it blank: ");
+        String startDateInput = sc.nextLine().trim();
+
+        System.out.print("End Date (YYYY-MM-DD) or leave it blank: ");
+        String endDateInput = sc.nextLine().trim();
+
+        System.out.print("Description contains (blank to skip): ");
+        String descriptionInput = sc.nextLine().trim();
+
+        System.out.print("Vendor contains (blank to skip): ");
+        String vendorInput = sc.nextLine().trim();
+
+        System.out.print("Amount or leave it blank: ");
+        String amountInput = sc.nextLine().trim();
+
         LocalDate startDate = null, endDate = null;
         Double amountQuery = null;
+        try { if (!startDateInput.isEmpty()) startDate = LocalDate.parse(startDateInput); } catch (Exception ignored) {}
+        try { if (!endDateInput.isEmpty())   endDate   = LocalDate.parse(endDateInput);   } catch (Exception ignored) {}
+        try { if (!amountInput.isEmpty())    amountQuery = Double.parseDouble(amountInput); } catch (Exception ignored) {}
 
-        // Try to parse start date if provided; ignore errors and keep it null if bad
-        try {
-            if (!startDateInput.isEmpty()) startDate = LocalDate.parse(startDateInput);
-        } catch (Exception ignore) {
-        }
-
-        // Try to parse end date if provided; ignore errors and keep it null if bad
-        try {
-            if (!endDateInput.isEmpty()) endDate = LocalDate.parse(endDateInput);
-        } catch (Exception ignore) {
-        }
-
-        // Try to parse amount if provided; ignore errors and keep it null if bad
-        try {
-            if (!amountInput.isEmpty()) amountQuery = Double.parseDouble(amountInput);
-        } catch (Exception ignore) {
-        }
-
-        // Normalize text queries to lowercase for case-insensitive matching; null means no filter
         String descriptionQuery = descriptionInput.isEmpty() ? null : descriptionInput.toLowerCase();
-        String vendorQuery = vendorInput.isEmpty() ? null : vendorInput.toLowerCase();
+        String vendorQuery      = vendorInput.isEmpty()      ? null : vendorInput.toLowerCase();
 
-        // Work on a copy so we do not reorder the main ledger list
-        List<Transaction> ledgerCopy = new ArrayList<>(ledger);
-        // Sort newest first by your static comparator
-        ledgerCopy.sort(BY_DATETIME_DESC); // latest first
+        // *** Visibility first: only rows the current user is allowed to see ***
+        List<Transaction> visible = ledger.stream()
+                .filter(Utilities::canView)      // admin => all; user => only their userId
+                .sorted(BY_DATETIME_DESC)        // newest first
+                .toList();
 
-        // Track whether any record matched, to show a message if none do
         boolean anyPrinted = false;
 
-        // Scan through each transaction in newest first order
-        for (Transaction record : ledgerCopy) {
-            // Grab the transaction date once to avoid repeated calls
-            LocalDate transactionDate = record.getDate();
+        for (Transaction record : visible) {
+            LocalDate d = record.getDate();
 
-            // If start date is set, skip anything before it
-            if (startDate != null && transactionDate.isBefore(startDate)) continue;
-            // If end date is set, skip anything after it
-            if (endDate != null && transactionDate.isAfter(endDate)) continue;
+            if (startDate != null && d.isBefore(startDate)) continue;
+            if (endDate   != null && d.isAfter(endDate))   continue;
 
-            // If description filter is set, require a case-insensitive substring match
             if (descriptionQuery != null &&
                     !record.getDescription().toLowerCase().contains(descriptionQuery)) continue;
 
-            // If vendor filter is set, require a case-insensitive substring match
             if (vendorQuery != null &&
                     !record.getVendor().toLowerCase().contains(vendorQuery)) continue;
 
-            // If amount filter is set, require exact match on double
             if (amountQuery != null && record.getAmount() != amountQuery) continue;
 
-            // If we reach here, the record passed all active filters, so print it
             printFormatted(record);
-            anyPrinted = true; // mark that we printed at least one result
+            anyPrinted = true;
         }
 
-        // If nothing matched, let the user know
         if (!anyPrinted) System.out.println("No transactions match your filters.");
     }
+
 
     private static void searchByVendor() {
         searchByField(Transaction::getVendor, "vendor name");
     }
 
     private static void searchByField(Function<Transaction, String> getter, String prompt) {
-        if (sc.hasNextLine()) sc.nextLine();
+        if (sc.hasNextLine()) sc.nextLine(); // clear leftover newline from prior nextInt/nextDouble
         System.out.print("Enter " + prompt + ": ");
-        String userInput = sc.nextLine().trim().toLowerCase();
+        String query = sc.nextLine().trim().toLowerCase();
 
-        List<Transaction> ledgerCopy = new ArrayList<>(ledger);
-        ledgerCopy.sort(BY_DATETIME_DESC);
+        // 1) Start from only-visible rows (admin => all, user => own)
+        List<Transaction> visible = ledger.stream()
+                .filter(Utilities::canView)
+                .sorted(BY_DATETIME_DESC)   // newest first
+                .toList();
 
-        for (Transaction record : ledgerCopy) {
-            String field = getter.apply(record);
-            if (field != null && field.toLowerCase().contains(userInput)) {
-                printFormatted(record);
+        // 2) Match case-insensitively on the chosen field
+        boolean any = false;
+        for (Transaction t : visible) {
+            String field = getter.apply(t);
+            if (field != null && field.toLowerCase().contains(query)) {
+                printFormatted(t);
+                any = true;
             }
         }
+        if (!any) System.out.println("No matching transactions.");
     }
+
 
     private static void searchByDescription() {
         searchByField(Transaction::getDescription, "transaction description");
@@ -390,44 +397,47 @@ public final class Utilities {
     }
 
     private static void printByDuration(LocalDate start, LocalDate end) {
-        //will add guardrails later
+        // Normalize bounds if passed in reversed
         if (start.isAfter(end)) {
-            LocalDate tmp = start;
-            start = end;
-            end = tmp;
+            LocalDate tmp = start; start = end; end = tmp;
         }
-        ArrayList<Transaction> ledgerCopy = new ArrayList<>(ledger);
-        ledgerCopy.sort(BY_DATETIME_DESC); //latest first
-        System.out.println("Displaying All Transactions between " + start + " and " + end);
-        for (Transaction record : ledgerCopy) {
-            LocalDate date = record.getDate();
 
-            if ((date.isEqual(start) || date.isAfter(start)) && (date.isEqual(end) || date.isBefore(end))) {
-                printFormatted(record);
+        System.out.println("Displaying transactions between " + start + " and " + end);
+
+        // Only the transactions the current user can see, already sorted newest-first
+        List<Transaction> view = visibleSorted();
+
+        for (Transaction t : view) {
+            LocalDate d = t.getDate();
+            // inclusive range: start <= d <= end
+            if (!d.isBefore(start) && !d.isAfter(end)) {
+                printFormatted(t);
             }
         }
     }
 
     private static void printByTypeSorted(String transactionType) {
-        // here I will normalize the input first null or anything else means "all"
-        String type = transactionType == null ? "all" : transactionType.toLowerCase();
+        // Normalize input; anything not "credit"/"debit" falls back to "all"
+        String type = (transactionType == null) ? "all" : transactionType.toLowerCase();
 
-        List<Transaction> copy = new ArrayList<>(ledger);
-        copy.sort(BY_DATETIME_DESC); // newest first
+        // Only the transactions the current user can see, already sorted newest-first
+        List<Transaction> view = visibleSorted();
 
         switch (type) {
             case "credit": // payments (amount < 0)
-                for (Transaction t : copy) {
+                for (Transaction t : view) {
                     if (t.getAmount() < 0) printFormatted(t);
                 }
                 break;
+
             case "debit":  // deposits (amount > 0)
-                for (Transaction t : copy) {
+                for (Transaction t : view) {
                     if (t.getAmount() > 0) printFormatted(t);
                 }
                 break;
+
             default:       // "all"
-                for (Transaction t : copy) {
+                for (Transaction t : view) {
                     printFormatted(t);
                 }
         }
@@ -466,9 +476,10 @@ public final class Utilities {
         LocalDate date = LocalDate.now();
         LocalTime time = LocalTime.now().withNano(0); //to get rid of extra nanoseconds at the end
 
-        Transaction record = new Transaction(date, time, description, vendor, amount);
-        ledger.add(record);
-//        DataStore.ledger.add(record); //for the webserver
+        Transaction record = new Transaction(date, time, description, vendor, amount, currentUser.getId());
+        if (seen.add(record)) {//this will return false if it is seen before
+            ledger.add(record); //only add if the duplicate entry does not exist
+        }
         //cal the write to file method
         writeToFile(record);
         System.out.println(depositOnly ? "Deposit added successfully!" : "Payment added successfully!");
@@ -476,57 +487,68 @@ public final class Utilities {
     }
 
     public static void writeToFile(Transaction record) {
-        System.out.println("Writing to file...");
         if (fileName == null || fileName.isEmpty()) {
             System.err.println("Output file name is not set. Cannot write.");
             return;
         }
-
-        try (FileWriter fw = new FileWriter(fileName, true);  //here I set append mode to true to prevent overwrite
+        try (FileWriter fw = new FileWriter(fileName, true);
              BufferedWriter bw = new BufferedWriter(fw);
-             PrintWriter output = new PrintWriter(bw)) {
+             PrintWriter out = new PrintWriter(bw)) {
 
-            output.printf("%s|%s|%s|%s|%.2f%n",
+            // userid|date|time|description|vendor|amount
+            out.printf("%d|%s|%s|%s|%s|%.2f%n",
+                    record.getUserId(),
                     record.getDate(),
-                    record.getTime().toString(),
+                    record.getTime().toString(),  // ensure you set withNano(0) when creating
                     record.getDescription(),
                     record.getVendor(),
                     record.getAmount());
-
-            System.out.println("Done!");
         } catch (IOException e) {
             System.err.println("Could not write to file: " + e.getMessage());
         }
     }
 
     public static void readFromFileAndAddToLedger() {
+        // Expect rows like: userid|date|time|description|vendor|amount
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
             while ((line = br.readLine()) != null) {
-                line = line.trim();
-                if (line.isEmpty()) continue;
+                String s = line.trim();
+                if (s.isEmpty()) continue;
 
-                // Split on | symbol and also allows extra spaces around pipes
-                String[] tokens = line.split("\\|", -1);
+                String[] t = s.split("\\|", -1);
 
-                // Skip header lines anywhere (case-insensitive)
-                if (tokens.length >= 5 && tokens[0].trim().equalsIgnoreCase("date") && tokens[1].trim().equalsIgnoreCase("time") && tokens[2].trim().equalsIgnoreCase("description") && tokens[3].trim().equalsIgnoreCase("vendor") && tokens[4].trim().equalsIgnoreCase("amount")) {
+                // Skip header anywhere (case-insensitive)
+                if (t.length >= 6
+                        && t[0].trim().equalsIgnoreCase("userid")
+                        && t[1].trim().equalsIgnoreCase("date")
+                        && t[2].trim().equalsIgnoreCase("time")
+                        && t[3].trim().equalsIgnoreCase("description")
+                        && t[4].trim().equalsIgnoreCase("vendor")
+                        && t[5].trim().equalsIgnoreCase("amount")) {
                     continue;
                 }
 
-                if (tokens.length != 5) continue; // not a valid transaction line because i need at least 5
+                if (t.length != 6) {
+                    System.err.println("Skipping line: expected 6 fields (userid|date|time|description|vendor|amount)");
+                    continue;
+                }
 
                 try {
-                    LocalDate date = LocalDate.parse(tokens[0].trim());// YYYY-MM-DD
-                    LocalTime time = LocalTime.parse(tokens[1].trim());// HH:mm:ss
-                    String description = tokens[2].trim();
-                    String vendor = tokens[3].trim();
-                    double amount = Double.parseDouble(tokens[4].trim());
-                    Transaction record = new Transaction(date, time, description, vendor, amount);
-                    ledger.add(record);
-//                    DataStore.ledger.add(record); // for webserver functionality
-                } catch (Exception ignore) {
-                    System.out.println("Bad Input: Skipping a row..."); //skips a row and keeps the program running
+                    int userId        = Integer.parseInt(t[0].trim());
+                    LocalDate date    = LocalDate.parse(t[1].trim());      // YYYY-MM-DD
+                    LocalTime time    = LocalTime.parse(t[2].trim());      // HH:mm:ss
+                    String description= t[3].trim();
+                    String vendor     = t[4].trim();
+                    double amount     = Double.parseDouble(t[5].trim());
+
+                    // Use the userId from the file (do NOT use currentUser here)
+                    Transaction record = new Transaction(date, time, description, vendor, amount, userId);
+                    if (seen.add(record)) {//this will return false if it is seen before
+                        ledger.add(record); //only add if the duplicate entry does not exist
+                    }
+                } catch (Exception ex) {
+                    System.err.println("Skipping line (bad data): " + ex.getMessage());
                 }
             }
         } catch (FileNotFoundException e) {
