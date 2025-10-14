@@ -150,19 +150,14 @@ GET /api/transactions/range?start=YYYY-MM-DD&end=YYYY-MM-DD → Date-range resul
 
 ### Architecture
 
-Entry (web): WebServer.java
-Starts Javalin, serves static assets, exposes /api/* routes.
-
-Business logic: Utilities.java
-CSV I/O, visibility filtering (canView), search/report helpers, user/session state for CLI mode.
-
-Models: Transaction, User
-
-Transaction implements equals/hashCode for de-dup at load time.
-
-User holds id, name, pin (String), adminAccess (boolean).
-
-In-memory store: DataStore.java
+* Entry (web): WebServer.java 
+* Starts Javalin, serves static assets, exposes /api/* routes. 
+* Business logic: Utilities.java 
+* CSV I/O, visibility filtering, search/report helpers, user/session state for CLI mode. 
+* Models: Transaction, User 
+* Transaction implements equals/hashCode for de-dup at load time.
+* User holds id, name, pin, adminAccess. 
+* In-memory store: DataStore.java
 
 ## License
 
