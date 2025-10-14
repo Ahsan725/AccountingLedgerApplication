@@ -3,10 +3,7 @@ package com.pluralsight;
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.function.Function;
 
 public final class Utilities {
@@ -17,12 +14,18 @@ public final class Utilities {
     static Scanner sc = new Scanner(System.in); //added a static Scanner to avoid passing it to methods repeatedly
     static String fileName = "transactions.csv";//file we will read from and write to
     static List<Transaction> ledger = DataStore.ledger;
+    // at top of Utilities (next to fileName)
+    static String profilesFileName = "profiles.csv";
+    static User currentUser;
+    static HashMap<Integer, User> idToUser = new HashMap<>();
 
     private Utilities() {
     } // constructor that prevents instantiation
 
     public static void startCliApplication() {
+        readUsersFromFile();
         readFromFileAndAddToLedger(); //load transactions into the program
+        setCurrentUser();
         char operation = ' ';
         while (operation != 'x') {
 
@@ -58,6 +61,85 @@ public final class Utilities {
                 }
             }
 
+        }
+    }
+
+    private static void setCurrentUser() {
+        while (true) {
+            try {
+                System.out.print("Welcome! Enter your user id: ");
+                int userId = Integer.parseInt(sc.nextLine().trim());
+
+                User user = idToUser.get(userId);
+                if (user == null) {
+                    System.out.println("No such user id. Try again.");
+                    continue;
+                }
+
+                System.out.print("Enter your PIN: ");
+                String pinStr = sc.nextLine().trim();
+
+                if (!user.getPin().equals(pinStr)) {
+                    System.out.println("Incorrect PIN. Try again.");
+                    continue;
+                }
+
+                currentUser = user;
+                System.out.println("Hello, " + currentUser.getName()
+                        + (currentUser.isAdminAccess() ? " (admin)" : "") + "!");
+                break;
+
+            } catch (NumberFormatException nfe) {
+                System.out.println("User id must be numeric. Try again.");
+            } catch (Exception e) {
+                System.out.println("Invalid input. Please try again.");
+            }
+        }
+    }
+
+    public static void readUsersFromFile() {
+        idToUser.clear();
+        try (BufferedReader br = new BufferedReader(new FileReader(profilesFileName))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String s = line.trim();
+                if (s.isEmpty()) continue;
+
+                String[] t = s.split("\\|", -1);
+
+                // Skip header anywhere
+                if (t.length >= 4
+                        && t[0].trim().equalsIgnoreCase("userid")
+                        && t[1].trim().equalsIgnoreCase("name")
+                        && t[2].trim().equalsIgnoreCase("pin")
+                        && t[3].trim().equalsIgnoreCase("access")) {
+                    continue;
+                }
+
+                // Need at least: id | name | pin  (access optional but preferred)
+                if (t.length < 3) continue;
+
+                try {
+                    int id = Integer.parseInt(t[0].trim());
+                    String name = t[1].trim();
+                    String pin = t[2].trim();
+
+                    boolean isAdmin = false;
+                    if (t.length >= 4) {
+                        // any case: "true"/"false"
+                        isAdmin = Boolean.parseBoolean(t[3].trim());
+                    }
+
+                    User u = new User(id, name, pin, isAdmin);
+                    idToUser.put(id, u);
+                } catch (Exception ignore) {
+                    // bad row -> skip
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println("ERROR: profiles file not found: " + profilesFileName);
+        } catch (IOException e) {
+            System.err.println("I/O error reading " + profilesFileName + ": " + e.getMessage());
         }
     }
 
