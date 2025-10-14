@@ -24,11 +24,17 @@ It includes a CLI for entering and reporting on transactions and a lightweight w
 
 - **Transaction model** with date, time, description, vendor, amount, and computed type (debit for deposits > 0, credit for payments < 0).
 - **Robust CSV/pipe ingestion** that tolerates header lines anywhere and skips malformed rows.
+  - Prevents duplicate transactions to be added to ledger which is very important for financial institutions. 
+  
 - **Reports**:
     - Month-to-Date, Previous Month
     - Year-to-Date, Previous Year
     - Custom search by date range, description, vendor, exact amount
-- **Sorted output** (newest first) everywhere.
+- **Multi-user permissions**
+  - Admin can view all users’ transactions (Super User permissions)
+  - Regular users see only their transactions and their transactions are associated with only them
+  - New transactions are saved with the current user’s userId
+- **Sorted output** (latest first) everywhere.
 - **Web UI**:
     - Three quick views (All, Deposits, Payments)
     - Date-range query
@@ -64,6 +70,8 @@ src/
              └─ app.js                         # UI logic (fetch + render)
 
 ```
+
+---
 ## Data Format
 Transactions are stored as pipe-delimited lines in 'transactions.cvs':
 
@@ -82,22 +90,45 @@ Amount: deposits positive, payments negative
 
 Even if header lines appear anywhere; the importer auto-skips them.
 
+---
+
+User Profiles are stored as pipe-delimited lines in 'profiles.cvs':
+```
+userid|name|pin|access
+1234|Ahsan Baseer|0000|true
+4211|Billy Bob|1212|false
+```
+
+User ID: 4 digit int
+
+Name: full name string
+
+PIN: String
+
+---
 ## Getting Started
+
 ### Prerequisites
 * Java 17+
-* JDK 17 Coretto 
+* JDK 17 Coretto
 * IntelliJ IDE Community Edition (recommended)
+
+---
 
 ### Run: CLI
 Run the CLI main class from your IDE by running the AccountingLedgerApplication.java file
 
+---
+
 ### Run: Web UI
-Run the Web UI by running the WebServer.java from your IDE. This will start the server at: 
+Run the Web UI by running the WebServer.java from your IDE. This will start the server at:
 ```bash
 
 http://localhost:8080
 ```
 The UI loads and immediately fetches ***/api/transactions***.
+
+---
 
 ## Web API Endpoints
 
@@ -110,13 +141,19 @@ GET /api/transactions/deposits → Only amount > 0
 
 GET /api/transactions/payments → Only amount < 0
 
+GET /api/transactions/user/{userID} → All transactions by user id
+
 GET /api/transactions/range?start=YYYY-MM-DD&end=YYYY-MM-DD → Date-range results (inclusive)
 ```
+
+---
+
 ## Frontend (HTML/CSS/JS)
-* Loads All/Deposits/Payments via the chips. 
-* Date-range picker calls /api/transactions/range. 
+* Loads All/Deposits/Payments via the chips.
+* Date-range picker calls /api/transactions/range.
 * Renders summary KPIs (balance, totals, count).
 
+---
 
 ## License
 MIT License. Feel free to use, modify, and share.
