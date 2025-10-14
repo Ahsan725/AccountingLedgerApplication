@@ -482,11 +482,11 @@ public class AccountingLedgerApplication {
         );
     }
     //webserver methods
-    public static String formatTransaction(Transaction t) {
+    public static String formatTransaction(Transaction record) {
         return String.format(
                 "%s | %-30s | %-18s | %10.2f | %-6s | %s",
-                t.getDate(), t.getDescription(), t.getVendor(),
-                t.getAmount(), t.transactionType(), t.getTime()
+                record.getDate(), record.getDescription(), record.getVendor(),
+                record.getAmount(), record.transactionType(), record.getTime()
         );
     }
     // Created a new method to use for webserver
