@@ -9,9 +9,9 @@
 <body>
 <header class="topbar">
     <div class="brand">
-        <div class="logo">AL</div>
+        <div class="logo">📝</div>
         <div class="titles">
-            <h1>Accounting Ledger</h1>
+            <h1>Admin Dashboard</h1>
             <p class="subtitle">Clean. Fast. Auditable.</p>
         </div>
     </div>
@@ -25,17 +25,17 @@
     <!-- KPIs -->
     <section class="grid cards" id="metrics">
         <div class="card kpi">
-            <div class="kpi-label">Balance</div>
+            <div class="kpi-label">Net Balance</div>
             <div class="kpi-value" id="kpi-balance">—</div>
             <div class="kpi-sub" id="kpi-balance-sub">Sum of all transactions</div>
         </div>
         <div class="card kpi">
-            <div class="kpi-label">Total Deposits</div>
+            <div class="kpi-label">Money In-flows</div>
             <div class="kpi-value pos" id="kpi-deposits">—</div>
             <div class="kpi-sub" id="kpi-deposits-sub">Amount & count</div>
         </div>
         <div class="card kpi">
-            <div class="kpi-label">Total Payments</div>
+            <div class="kpi-label">Money Out-flows</div>
             <div class="kpi-value neg" id="kpi-payments">—</div>
             <div class="kpi-sub" id="kpi-payments-sub">Amount & count</div>
         </div>
@@ -59,9 +59,8 @@
             <!-- Right: inline date range -->
             <div class="daterange">
                 <input type="date" id="range-start" aria-label="Start date" />
-                <span class="dash">–</span>
                 <input type="date" id="range-end" aria-label="End date" />
-                <button id="btn-range" class="btn ghost">Show Range</button>
+                <button id="btn-range" class="chip">Show Range</button>
             </div>
         </div>
     </section>

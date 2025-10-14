@@ -13,7 +13,6 @@
 
 *{ box-sizing: border-box; }
 html,body{ height:100%; }
-/* --- Replace your existing body rule with this --- */
 body{
   margin:0;
   font: 14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
@@ -21,76 +20,13 @@ body{
 
   /* Layered gradients to avoid harsh edges & banding */
   background:
-    radial-gradient(1200px 900px at 12% -20%, #1b2234 0%, #121723 55%, #0d0f13 100%),
+    radial-gradient(1200px 900px at 12% -20%, #1b2234 0%, #121723 55%, #061940 100%),
     radial-gradient(900px 700px at 88% 120%, #151c2a 0%, rgba(21,28,42,0.0) 60%),
     linear-gradient(180deg, #0d0f13 0%, #0b0e14 100%);
   background-attachment: fixed, fixed, fixed;
   background-repeat: no-repeat;
-  background-color: #0d0f13;
+  background-color: #444a57;
 
-  /* Smooth out subpixel transitions on some displays */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  /* Create a new stacking context for the animated overlays below */
-  position: relative;
-  overflow-x: hidden;
-}
-
-/* --- Add these: animated soft glow & subtle dither layer --- */
-
-/* Slowly rotating, blurred conic glow for “alive” feeling */
-body::before{
-  content:"";
-  position: fixed;
-  inset: -20%;
-  z-index: -1;
-  background:
-    conic-gradient(from var(--spin, 0deg),
-      rgba(106,166,255,0.12),
-      rgba(155,134,247,0.10),
-      rgba(106,166,255,0.12),
-      rgba(155,134,247,0.10),
-      rgba(106,166,255,0.12)
-    );
-  filter: blur(80px);
-  opacity: .65;
-  animation: spin360 60s linear infinite;
-  pointer-events: none;
-}
-
-/* Fine moving grain to break up banding on large displays */
-body::after{
-  content:"";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(100px 100px at 0 0, rgba(255,255,255,0.006) 0 40%, transparent 41%) repeat,
-    radial-gradient(120px 120px at 50% 50%, rgba(255,255,255,0.004) 0 35%, transparent 36%) repeat;
-  background-size: 200px 200px, 220px 220px;
-  mix-blend-mode: soft-light;
-  opacity: .35;
-  animation: drift 24s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-
-/* Keyframes for the motion */
-@keyframes spin360{
-  to { --spin: 360deg; }
-}
-@keyframes drift{
-  0%   { transform: translate3d(0,0,0); }
-  100% { transform: translate3d(-3%, -2%, 0); }
-}
-
-/* Respect reduced motion preference */
-@media (prefers-reduced-motion: reduce){
-  body::before, body::after { animation: none; }
-}
-
-
-/* Topbar */
 .topbar{
   position: sticky; top:0; z-index: 10;
   display:flex; justify-content: space-between; align-items:center;
@@ -136,10 +72,35 @@ input, select{
   outline:none;
 }
 input::placeholder{ color:#6f7d8c; }
-.filter-actions{
-  display:flex; justify-content:space-between; align-items:center; margin-top:12px;
+
+.toolbar{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  gap: 16px;
 }
-.chipbar{ display:flex; gap:8px; flex-wrap:wrap; }
+
+/* Ensure the chipbar can take up space but wrap if necessary */
+.chipbar{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-grow: 1; /* Allows chipbar to expand, pushing daterange to the right */
+}
+
+.daterange {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Adjust date inputs within the daterange to be smaller/inline */
+.daterange input[type="date"] {
+    width: auto;
+    max-width: 140px;
+}
+
 .chip{
   background:#0f1320; color:var(--text); border:1px solid var(--border);
   border-radius:999px; padding:8px 12px; cursor:pointer;
@@ -175,11 +136,6 @@ th.num, td.num{ text-align:right; }
 .badge.debit{ background: rgba(46,204,113,.12); color: var(--pos); }
 .badge.credit{ background: rgba(255,107,107,.12); color: var(--neg); }
 
-/* Empty state */
-.empty{
-  position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  color:var(--muted); gap:8px; background:transparent;
-}
 .hidden{ display:none; }
 .footerbar{
   display:flex; justify-content:space-between; align-items:center; padding-top:10px; color:var(--muted);
