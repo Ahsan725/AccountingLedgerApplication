@@ -18,7 +18,7 @@ It includes a CLI for entering and reporting on transactions and a lightweight w
 - [Frontend (HTML/CSS/JS)](#frontend-htmlcssjs)
 - [License](#license)
 
----
+
 
 ## Features
 
@@ -41,7 +41,7 @@ It includes a CLI for entering and reporting on transactions and a lightweight w
     - Clean, dark, responsive design with summary KPIs
 - **Web API (JSON)** served by Javalin.
 
----
+
 
 ## Tech Stack
 
@@ -51,7 +51,7 @@ It includes a CLI for entering and reporting on transactions and a lightweight w
 - **JSON**: Jackson (basic databind; date/time serialized as strings via DTO)
 - **Frontend**: Vanilla HTML/CSS/JS (no framework)
 
----
+
 
 ## Project Structure
 
@@ -71,7 +71,7 @@ src/
 
 ```
 
----
+
 ## Data Format
 Transactions are stored as pipe-delimited lines in 'transactions.cvs':
 
@@ -90,7 +90,7 @@ Amount: deposits positive, payments negative
 
 Even if header lines appear anywhere; the importer auto-skips them.
 
----
+
 
 User Profiles are stored as pipe-delimited lines in 'profiles.cvs':
 ```
@@ -105,7 +105,7 @@ Name: full name string
 
 PIN: String
 
----
+
 ## Getting Started
 
 ### Prerequisites
@@ -113,12 +113,12 @@ PIN: String
 * JDK 17 Coretto
 * IntelliJ IDE Community Edition (recommended)
 
----
+
 
 ### Run: CLI
 Run the CLI main class from your IDE by running the AccountingLedgerApplication.java file
 
----
+
 
 ### Run: Web UI
 Run the Web UI by running the WebServer.java from your IDE. This will start the server at:
@@ -128,7 +128,7 @@ http://localhost:8080
 ```
 The UI loads and immediately fetches ***/api/transactions***.
 
----
+
 
 ## Web API Endpoints
 
@@ -146,14 +146,14 @@ GET /api/transactions/user/{userID} → All transactions by user id
 GET /api/transactions/range?start=YYYY-MM-DD&end=YYYY-MM-DD → Date-range results (inclusive)
 ```
 
----
+
 
 ## Frontend (HTML/CSS/JS)
 * Loads All/Deposits/Payments via the chips.
 * Date-range picker calls /api/transactions/range.
 * Renders summary KPIs (balance, totals, count).
 
----
+
 
 ## License
 MIT License. Feel free to use, modify, and share.
