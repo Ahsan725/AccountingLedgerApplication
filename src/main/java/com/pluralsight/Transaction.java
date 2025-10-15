@@ -3,6 +3,8 @@ package com.pluralsight;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+//transaction class represents a transaction that has a date, a time, a description, a vendor, an amount, a transaction
+//type and a userID of who performed the transaction
 public class Transaction {
     private LocalDate date;
     private LocalTime time;
@@ -18,7 +20,7 @@ public class Transaction {
         this.description = description;
         this.vendor = vendor;
         this.amount = amount;
-        this.transactionType = transactionType();
+        this.transactionType = transactionType(); //call a separate method that determines the type of transactions
         this.userId = userId;
     }
 
@@ -81,6 +83,9 @@ public class Transaction {
         }
     }
 
+    //created equals method to be able to compare two transactions. I needed this to prevent deduplication
+    //of transactions. Which is super important for Banks and customers. For this I also needed hashCode method
+    //to do the comparisons.
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -97,7 +102,8 @@ public class Transaction {
                 && java.util.Objects.equals(this.getDescription(), that.getDescription())
                 && java.util.Objects.equals(this.getVendor(), that.getVendor());
     }
-
+//If two equal objects have different hash codes they’ll end up in different buckets
+//causing duplicates in a HashSet or failed lookups in a HashMap. This is why I had to also override hashcode
     @Override
     public int hashCode() {
         long cents = Math.round(this.getAmount() * 100.0);
