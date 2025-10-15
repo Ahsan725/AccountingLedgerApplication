@@ -54,7 +54,6 @@ public final class Utilities {
                 case 'l' -> ledgerMenu();
                 case 'o' -> logOut();
                 case 'x' -> {
-                    if (sc.hasNextLine()) sc.nextLine();
                     System.out.println("Exiting...");
                 }
                 default -> {
