@@ -13,7 +13,6 @@ public class User {
         this.adminAccess = false;
     }
 
-    // Optional convenience constructor if you want to set admin in one go
     public User(int id, String name, String pin, boolean adminAccess) {
         this.id = id;
         this.name = name;

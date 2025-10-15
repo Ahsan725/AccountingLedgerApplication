@@ -9,7 +9,7 @@ import java.util.function.Function;
 public final class Utilities {
 
     //static comparator
-    private static final Comparator<Transaction> BY_DATETIME_DESC = Comparator.comparing(Transaction::getDate).thenComparing(Transaction::getTime).reversed();
+    private static final Comparator<Transaction> BY_DATETIME_DESCENDING = Comparator.comparing(Transaction::getDate).thenComparing(Transaction::getTime).reversed();
     //Static variables
     static Scanner sc = new Scanner(System.in); //added a static Scanner to avoid passing it to methods repeatedly
     static String fileName = "transactions.csv";//file we will read from and write to
@@ -108,29 +108,29 @@ public final class Utilities {
                 String s = line.trim();
                 if (s.isEmpty()) continue;
 
-                String[] t = s.split("\\|", -1);
+                String[] userFields = s.split("\\|", -1);
 
                 // Skip header anywhere
-                if (t.length >= 4
-                        && t[0].trim().equalsIgnoreCase("userid")
-                        && t[1].trim().equalsIgnoreCase("name")
-                        && t[2].trim().equalsIgnoreCase("pin")
-                        && t[3].trim().equalsIgnoreCase("access")) {
+                if (userFields.length >= 4
+                        && userFields[0].trim().equalsIgnoreCase("userid")
+                        && userFields[1].trim().equalsIgnoreCase("name")
+                        && userFields[2].trim().equalsIgnoreCase("pin")
+                        && userFields[3].trim().equalsIgnoreCase("access")) {
                     continue;
                 }
 
                 // Need at least: id | name | pin  (access optional but preferred)
-                if (t.length < 3) continue;
+                if (userFields.length < 3) continue;
 
                 try {
-                    int id = Integer.parseInt(t[0].trim());
-                    String name = t[1].trim();
-                    String pin = t[2].trim();
+                    int id = Integer.parseInt(userFields[0].trim());
+                    String name = userFields[1].trim();
+                    String pin = userFields[2].trim();
 
                     boolean isAdmin = false;
-                    if (t.length >= 4) {
+                    if (userFields.length >= 4) {
                         // any case: "true"/"false"
-                        isAdmin = Boolean.parseBoolean(t[3].trim());
+                        isAdmin = Boolean.parseBoolean(userFields[3].trim());
                     }
 
                     User u = new User(id, name, pin, isAdmin);
@@ -145,20 +145,20 @@ public final class Utilities {
             System.err.println("I/O error reading " + profilesFileName + ": " + e.getMessage());
         }
     }
-    // --- Helpers you call everywhere ---
+
     private static boolean isAdmin() {
         return currentUser != null && currentUser.isAdminAccess();
     }
 
-    private static boolean canView(Transaction t) {
+    private static boolean canView(Transaction record) {
         // Admin sees everything; users see only their own transactions
-        return isAdmin() || (currentUser != null && t.getUserId() == currentUser.getId());
+        return isAdmin() || (currentUser != null && record.getUserId() == currentUser.getId());
     }
-    /** Filter ledger to what the current user can see, and sort latest first. */
+    //Filter ledger to what the current user can see, and sort latest first.
     public static List<Transaction> visibleSorted() {
         return ledger.stream()
                 .filter(Utilities::canView)
-                .sorted(BY_DATETIME_DESC)
+                .sorted(BY_DATETIME_DESCENDING)
                 .toList();
     }
 
@@ -183,7 +183,7 @@ public final class Utilities {
                     H) Return to Home
                     Enter command:
                     """);
-            operation = sc.nextLine().toLowerCase().charAt(0);
+            operation = sc.nextLine().toLowerCase().trim().charAt(0);
             switch (operation) {
                 case 'a' -> printByTypeSorted("all");
                 case 'd' -> printByTypeSorted("debit");
@@ -307,7 +307,7 @@ public final class Utilities {
         // *** Visibility first: only rows the current user is allowed to see ***
         List<Transaction> visible = ledger.stream()
                 .filter(Utilities::canView)      // admin => all; user => only their userId
-                .sorted(BY_DATETIME_DESC)        // newest first
+                .sorted(BY_DATETIME_DESCENDING)        // newest first
                 .toList();
 
         boolean anyPrinted = false;
@@ -333,7 +333,6 @@ public final class Utilities {
         if (!anyPrinted) System.out.println("No transactions match your filters.");
     }
 
-
     private static void searchByVendor() {
         searchByField(Transaction::getVendor, "vendor name");
     }
@@ -346,7 +345,7 @@ public final class Utilities {
         // 1) Start from only-visible rows (admin => all, user => own)
         List<Transaction> visible = ledger.stream()
                 .filter(Utilities::canView)
-                .sorted(BY_DATETIME_DESC)   // newest first
+                .sorted(BY_DATETIME_DESCENDING)   // newest first
                 .toList();
 
         // 2) Match case-insensitively on the chosen field
@@ -417,7 +416,7 @@ public final class Utilities {
     }
 
     private static void printByTypeSorted(String transactionType) {
-        // Normalize input; anything not "credit"/"debit" falls back to "all"
+        // Normalizing input anything not "credit"/"debit" falls back to "all"
         String type = (transactionType == null) ? "all" : transactionType.toLowerCase();
 
         // Only the transactions the current user can see, already sorted newest-first
@@ -445,46 +444,41 @@ public final class Utilities {
 
     private static void performTransaction(boolean depositOnly) {
         System.out.println(depositOnly ? "DEPOSIT SCREEN" : "PAYMENT SCREEN");
-        // If method called nextInt/nextDouble earlier, clear the leftover newline first:
-//        if (sc.hasNextLine()) sc.nextLine();
+
         System.out.print("Enter the Transaction Description: ");
         String description = sc.nextLine();
+
         System.out.print("Enter the name of the vendor: ");
         String vendor = sc.nextLine();
 
+        // read a number then normalize the sign based on depositOnly
         double amount;
         while (true) {
             System.out.print("Enter the amount: ");
             if (sc.hasNextDouble()) {
-                amount = sc.nextDouble();
-                sc.nextLine(); // consume the newline left by nextDouble()
-                if (depositOnly && amount < 0) {
-                    System.out.println("Amount is negative! Enter a positive amount to make a deposit...");
-                    continue;
-                }
-                if (!depositOnly && amount > 0) {
-                    System.out.println("Amount is positive! Enter a negative amount to make a payment...");
-                    continue;
-                }
-                break; // valid amount
+                double entered = sc.nextDouble();
+                sc.nextLine(); // consume newline
+                amount = depositOnly ? Math.abs(entered) : -Math.abs(entered);
+                break;
             } else {
                 System.out.println("Invalid number. Please enter a numeric amount (e.g., 123.45 or -67.89).");
-                sc.nextLine(); // discard bad token
+                sc.nextLine(); //discard
             }
         }
 
         LocalDate date = LocalDate.now();
-        LocalTime time = LocalTime.now().withNano(0); //to get rid of extra nanoseconds at the end
+        LocalTime time = LocalTime.now().withNano(0);
 
         Transaction record = new Transaction(date, time, description, vendor, amount, currentUser.getId());
-        if (seen.add(record)) {//this will return false if it is seen before
-            ledger.add(record); //only add if the duplicate entry does not exist
+        if (seen.add(record)) {
+            ledger.add(record);
         }
-        //cal the write to file method
-        writeToFile(record);
-        System.out.println(depositOnly ? "Deposit added successfully!" : "Payment added successfully!");
 
+        writeToFile(record);
+        System.out.printf("%s added successfully! (Amount: %,.2f)%n",
+                depositOnly ? "Deposit" : "Payment", amount);
     }
+
 
     public static void writeToFile(Transaction record) {
         if (fileName == null || fileName.isEmpty()) {
@@ -535,12 +529,12 @@ public final class Utilities {
                 }
 
                 try {
-                    int userId        = Integer.parseInt(t[0].trim());
-                    LocalDate date    = LocalDate.parse(t[1].trim());      // YYYY-MM-DD
-                    LocalTime time    = LocalTime.parse(t[2].trim());      // HH:mm:ss
-                    String description= t[3].trim();
-                    String vendor     = t[4].trim();
-                    double amount     = Double.parseDouble(t[5].trim());
+                    int userId = Integer.parseInt(t[0].trim());
+                    LocalDate date = LocalDate.parse(t[1].trim());      // YYYY-MM-DD
+                    LocalTime time = LocalTime.parse(t[2].trim());      // HH:mm:ss
+                    String description = t[3].trim();
+                    String vendor = t[4].trim();
+                    double amount = Double.parseDouble(t[5].trim());
 
                     // Use the userId from the file (do NOT use currentUser here)
                     Transaction record = new Transaction(date, time, description, vendor, amount, userId);
@@ -560,7 +554,6 @@ public final class Utilities {
 
     private static void printFormatted(Transaction record) {
         // date | description | vendor | amount | type | time
-        // widths: 10 | 30 | 20 | 12 | 6 | 8
         String dateString = (record.getDate() == null) ? "" : record.getDate().toString(); // YYYY-MM-DD
 
         // Always HH:mm:ss with zero padding because my time was missing 00 sometimes
@@ -572,13 +565,13 @@ public final class Utilities {
         }
 
         System.out.printf(
-                "%-10s  %-30.30s  %-12.20s  %,12.2f  %-6.6s  %-8s%n",
+                "%-10s  %-30.30s  %-30.20s  %,30.2f  %-12.6s  %-12s%n",
                 dateString,
                 record.getDescription(),
                 record.getVendor(),
-                record.getAmount(),            // amount with commas
+                record.getAmount(),
                 record.transactionType(),
-                timeString                   // zero-padded time
+                timeString
         );
     }
     //webserver methods
@@ -600,7 +593,7 @@ public final class Utilities {
         LocalDate finalEnd = end;
         return ledger.stream()
                 .filter(t -> !t.getDate().isBefore(finalStart) && !t.getDate().isAfter(finalEnd))
-                .sorted(BY_DATETIME_DESC)
+                .sorted(BY_DATETIME_DESCENDING)
                 .toList();
     }
 
