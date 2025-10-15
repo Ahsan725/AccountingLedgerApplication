@@ -1,7 +1,7 @@
 package com.pluralsight;
 
 //created a user class to represent a user that uses the ledger, is associated with a transaction, and has
-//different permissions for access.
+//different permissions to access ledger.
 public class User {
     private int id;
     private String name;
@@ -17,7 +17,13 @@ public class User {
         this.adminAccess = false;
     }
 
-    //Getters and Setters for member fields
+    public User(int id, String name, String pin, boolean adminAccess) {
+        this.id = id;
+        this.name = name;
+        this.pin = pin;
+        this.adminAccess = adminAccess;
+    }
+
     public int getId() {
         return id;
     }
@@ -46,7 +52,7 @@ public class User {
         return adminAccess;
     }
 
-    //this will be used to set access permissions and make a user an Admin
+    //used to change admin access
     public void setAdminAccess(boolean adminAccess) {
         this.adminAccess = adminAccess;
     }
