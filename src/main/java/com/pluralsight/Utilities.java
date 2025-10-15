@@ -99,7 +99,7 @@ public final class Utilities {
         }
     }
 
-    public static void readUsersFromFile() {
+    private static void readUsersFromFile() {
         idToUser.clear();
         try (BufferedReader br = new BufferedReader(new FileReader(profilesFileName))) {
             String line;
@@ -154,14 +154,14 @@ public final class Utilities {
         return isAdmin() || (currentUser != null && record.getUserId() == currentUser.getId());
     }
     //Filter ledger to what the current user can see, and sort latest first.
-    public static List<Transaction> visibleSorted() {
+    private static List<Transaction> visibleSorted() {
         return ledger.stream()
                 .filter(Utilities::canView)
                 .sorted(BY_DATETIME_DESCENDING)
                 .toList();
     }
 
-    public static void logOut(){
+    private static void logOut(){
         System.out.println("Logging out... " + currentUser.getName());
         currentUser = null;
         startCliApplication();
@@ -479,7 +479,7 @@ public final class Utilities {
     }
 
 
-    public static void writeToFile(Transaction record) {
+    private static void writeToFile(Transaction record) {
         if (fileName == null || fileName.isEmpty()) {
             System.err.println("Output file name is not set. Cannot write.");
             return;
