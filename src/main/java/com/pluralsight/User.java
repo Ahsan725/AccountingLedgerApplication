@@ -2,6 +2,9 @@ package com.pluralsight;
 
 //created a user class to represent a user that uses the ledger, is associated with a transaction, and has
 //different permissions to access ledger.
+//Main idea is that a user should only be able to look at their own transactions, make transactions only on their
+//own behalf and be restricted from viewing transactions of other users.
+//Admin or superusers should be able to view all transactions and perform admin operations
 public class User {
     private int id;
     private String name;
