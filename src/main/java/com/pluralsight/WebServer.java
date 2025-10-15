@@ -19,11 +19,16 @@ public class WebServer {
 //Entry point into the Web UI that will launch and configure the HTTP server.
 
     //a comparator to sort Transaction objects by date, then time, and then reverse it so newest appear first.
-    private static final Comparator<Transaction> BY_DATETIME_DESCENDING = Comparator.comparing(Transaction::getDate) //Transaction::getDate and Transaction::getTime are method references used in the comparator chain.
-            .thenComparing(Transaction::getTime).reversed();
+    private static final Comparator<Transaction> BY_DATETIME_DESCENDING = Comparator.comparing(Transaction::getDate)
+            .thenComparing(Transaction::getTime).reversed();//Transaction::getDate and Transaction::getTime
+    // are method references used in the comparator chain.
 
-    private static TransactionDto toDto(Transaction t) {
-        return new TransactionDto(t.getDate() == null ? "" : t.getDate().toString(), t.getTime() == null ? "" : t.getTime().toString(), t.getDescription(), t.getVendor(), t.getAmount(), t.transactionType());
+
+// Helper that converts a domain Transaction to a TransactionDto.
+// Safely handles null date/time by emitting empty strings otherwise uses toString().
+// Copies description, vendor, amount, and computed type.
+    private static TransactionDto toDto(Transaction record) {
+        return new TransactionDto(record.getDate() == null ? "" : record.getDate().toString(), record.getTime() == null ? "" : record.getTime().toString(), record.getDescription(), record.getVendor(), record.getAmount(), record.transactionType());
     }
 
     private static LocalDate parseDate(String s) {
