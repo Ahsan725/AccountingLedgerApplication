@@ -111,7 +111,10 @@ public final class Utilities {
         }
     }
 
-//created this method to prevent all parsing errors, exceptions, etc for any type of data input from user.
+    //created this method to prevent all parsing errors, exceptions, etc for any type of data input from user.
+    //This method only takes three strings as valid argument for expectedType: "int", "double and "string"
+    //for char type I recommend using "string" then using charAt()
+    // like char option = readInputRequireType("string").charAt(0)
     private static String readInputRequireType(String expectedType) {
         final Pattern alnum = Pattern.compile("^[a-z0-9]+$");
         final Pattern intPattern = Pattern.compile("^\\d+$");
@@ -211,7 +214,7 @@ public final class Utilities {
 
                 currentUser = user;
                 System.out.println("Hello, " + currentUser.getName()
-                        + (currentUser.isAdminAccess() ? " (admin)" : "") + "!");
+                        + (currentUser.isAdminAccess() ? " (ADMIN)" : "") + "!");
                 break;
 
             } catch (NumberFormatException nfe) {
@@ -404,7 +407,6 @@ public final class Utilities {
                 case 2 -> searchByDescription();
                 case 3 -> customSearch();
                 case 0 -> {
-                    if (sc.hasNextLine()) sc.nextLine();
                     System.out.println("Exiting... ");
                 }
                 default -> System.out.println("Invalid operation... Try again or press 0 to quit");
@@ -420,7 +422,7 @@ public final class Utilities {
      */
     private static void customSearch() {
         // Clear leftover newline from prior nextInt/nextDouble before using nextLine()
-        if (sc.hasNextLine()) sc.nextLine();
+//        if (sc.hasNextLine()) sc.nextLine();
 
         System.out.println("CUSTOM SEARCH");
 
@@ -499,7 +501,7 @@ public final class Utilities {
      * - label used to prompt the user
      */
     private static void searchByField(Function<Transaction, String> getter, String prompt) {
-        if (sc.hasNextLine()) sc.nextLine(); // Clear newline from a prior nextInt/nextDouble
+//        if (sc.hasNextLine()) sc.nextLine(); // Clear newline from a prior nextInt/nextDouble
         System.out.print("Enter " + prompt + ": ");
         String query = sc.nextLine().trim().toLowerCase();
 
