@@ -34,6 +34,7 @@ an Admin dashboard for KPIs and monitoring all transactions. This way key busine
     - [Run: Web UI](#run-web-ui)
 - [Web API Endpoints](#web-api-endpoints)
 - [Frontend (HTML/CSS/JS)](#frontend-htmlcssjs)
+- - [Backend](#backend)
 - [License](#license)
 
 ## Features
@@ -96,10 +97,11 @@ src/
 Transactions are stored as pipe-delimited lines in 'transactions.cvs':
 
 ```
-date|time|description|vendor|amount
-2025-10-12|12:21:46|Taxes|IRS|-500.00
-2025-10-12|12:21:24|Tax Refund|IRS|345.21
-2025-10-09|00:18:45|invoice 2043 paid|Client A|950.00
+userid|date|time|description|vendor|amount
+4211|2023-04-15|10:13:25|ergonomic keyboard|Amazon|-89.50
+1234|2023-04-15|11:15:00|Invoice 1001 paid|Joe|1500.00
+4211|2023-04-15|12:05:41|lunch combo|Chipotle|-12.86
+1234|2025-04-16|08:01:03|morning coffee|Starbucks|-4.75
 ```
 
 Date: YYYY-MM-DD
