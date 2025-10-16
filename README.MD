@@ -5,6 +5,18 @@ A simple, auditable personal accounting ledger built in Java 17.
 It includes a CLI for entering and reporting on transactions and a lightweight web UI (served by Javalin) for viewing
 All/Deposits/Payments and date-range results in a polished table.
 
+<p align="center">
+  <img src="./assets/ui-demo.gif" alt="Demo of the Web UI" width="100%">
+</p>
+
+
+# Raw APIs Response 
+
+<p align="center">
+  <img src="./assets/ui-demo.gif" alt="Demo of the APIs" width="100%">
+</p>
+
+
 ## Table of Contents
 
 - [Features](#features)
