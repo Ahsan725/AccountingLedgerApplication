@@ -640,8 +640,7 @@ public final class Utilities {
         while (true) {
             System.out.print("Enter the amount: ");
             if (sc.hasNextDouble()) {
-                double entered = sc.nextDouble();
-                sc.nextLine(); // consume newline left by nextDouble()
+                double entered = Double.parseDouble(require("double"));
                 amount = depositOnly ? Math.abs(entered) : -Math.abs(entered);
                 break;
             } else {
