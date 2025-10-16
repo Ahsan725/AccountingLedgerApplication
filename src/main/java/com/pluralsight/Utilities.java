@@ -5,6 +5,11 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Pattern;
+
+
+import java.util.Locale;
+import java.util.NoSuchElementException;
 
 /**
  * # Utilities: CLI + helper utilities for the ledger application.
@@ -85,8 +90,9 @@ public final class Utilities {
                     X) Exit
                     Enter command:
                     """);
-            // I trim, lowercase, and take first char of the user input
-            operation = sc.nextLine().toLowerCase().charAt(0);
+
+            // I take first char of the user input
+            operation = require("string").charAt(0);
 
             switch (operation) {
                 case 'd' -> {
@@ -104,6 +110,78 @@ public final class Utilities {
             }
         }
     }
+
+//created this method to prevent all parsing errors, exceptions, etc for any type of data input from user.
+    private static String require(String expectedType) {
+        final Pattern alnum = Pattern.compile("^[a-z0-9]+$");
+        final Pattern intPattern = Pattern.compile("^\\d+$");
+        final Pattern doublePattern = Pattern.compile("^\\d+(\\.\\d+)?$"); // like 23 or 23.45
+
+        String dataTypeName = expectedType == null ? "string" : expectedType.trim().toLowerCase(Locale.ROOT);
+
+        while (true) {
+            try {
+                if (!sc.hasNextLine()) {
+                    System.out.println("No input detected. Please try again.");
+                    continue;
+                }
+
+                String s = sc.nextLine();
+                s = s.trim().toLowerCase(Locale.ROOT);
+
+                if (s.isEmpty()) {
+                    System.out.println("Input was empty. Please try again.");
+                    continue;
+                }
+
+                switch (dataTypeName) {
+                    case "int": {
+                        if (!intPattern.matcher(s).matches()) {
+                            System.out.println("Only digits 0–9 are allowed for an integer. Please try again.");
+                            continue;
+                        }
+                        // normalize leading zeros and I only keep one zero if the number is zero
+                        s = s.replaceFirst("^0+(?!$)", "");
+                        return s; // parse-safe for Integer.parseInt format-wise
+                    }
+                    case "double": {
+                        if (!doublePattern.matcher(s).matches()) {
+                            System.out.println("Enter a decimal like 23 or 23.45 (digits with at most one dot). Please try again.");
+                            continue;
+                        }
+                        // normalize leading zeros in integer part
+                        int dot = s.indexOf('.');
+                        if (dot >= 0) {
+                            String intPart = s.substring(0, dot).replaceFirst("^0+(?!$)", "");
+                            String fracPart = s.substring(dot + 1); // already digits by regex
+                            s = intPart + "." + fracPart;
+                        } else {
+                            s = s.replaceFirst("^0+(?!$)", "");
+                        }
+                        return s; // parse-safe for Double.parseDouble
+                    }
+                    case "string":
+                    default: {
+                        // keep letters and digits only
+                        s = s.replaceAll("[^a-z0-9]", "");
+                        if (s.isEmpty() || !alnum.matcher(s).matches()) {
+                            System.out.println("Only letters and numbers are allowed. Please try again.");
+                            continue;
+                        }
+                        return s;
+                    }
+                }
+
+            } catch (NoSuchElementException e) {
+                System.out.println("No input available. Please try again.");
+            } catch (IllegalStateException e) {
+                System.out.println("Input stream is not available. Please try again.");
+            } catch (Exception e) {
+                System.out.println("Unexpected error: " + e.getMessage());
+            }
+        }
+    }
+
 
     /**
      * Prompts for user id + PIN until a valid match is found.
@@ -251,7 +329,7 @@ public final class Utilities {
                     H) Return to Home
                     Enter command:
                     """);
-            operation = sc.nextLine().toLowerCase().trim().charAt(0);
+            operation = require("string").charAt(0);
 
             switch (operation) {
                 case 'a' -> printByTypeSorted("all");
@@ -285,7 +363,7 @@ public final class Utilities {
                     0) Back
                     Enter command:
                     """);
-            operation = sc.nextInt();
+            operation = Integer.parseInt(require("int"));
             switch (operation) {
                 case 1 -> printMonthToDate();
                 case 2 -> printPreviousMonth();
@@ -295,7 +373,6 @@ public final class Utilities {
                 case 6 -> searchMenu();
                 case 0 -> {
                     // Consume newline so the next menu read works with nextLine()
-                    if (sc.hasNextLine()) sc.nextLine();
                     System.out.println("Exiting...");
                 }
                 default -> System.out.println("Invalid operation... Try again or press 0 to quit");
@@ -321,7 +398,7 @@ public final class Utilities {
                     0) Back
                     Enter command:
                     """);
-            operation = sc.nextInt();
+            operation = Integer.parseInt(require("int"));
             switch (operation) {
                 case 1 -> searchByVendor();
                 case 2 -> searchByDescription();
@@ -467,7 +544,7 @@ public final class Utilities {
     // Prints all transactions from the previous calendar month (inclusive)
     private static void printPreviousMonth() {
         LocalDate today = LocalDate.now();
-        // YearMonth is ideal for calendar arithmetic (avoids manual month edge cases)
+        // YearMonth is ideal for calendar arithmetic as Paul calls it
         java.time.YearMonth prev = java.time.YearMonth.from(today).minusMonths(1);
         LocalDate firstOfPrevious = prev.atDay(1);
         LocalDate lastOfPrevious = prev.atEndOfMonth();
