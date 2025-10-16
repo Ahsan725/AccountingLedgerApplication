@@ -1,9 +1,14 @@
-# Accounting Ledger — Java CLI + Web UI
+# Accounting Ledger with Java CLI + Web UI
 
-A simple, auditable personal accounting ledger built in Java 17.
+A simple, auditable personal accounting ledger built in Java 17. It is supposed to 
+represent a ledger for a small community bank or credit union. It allows users to make and view transactions, view reports,
+search for transactions by merchant, vendor, description, amount, date range, etc. 
 
-It includes a CLI for entering and reporting on transactions and a lightweight web UI (served by Javalin) for viewing
-All/Deposits/Payments and date-range results in a polished table.
+It also provides functionality for super users or admin privileges. The admin can view any transactions, view reports etc.
+For executive leadership who might not want to waste their time going through CLI I have created
+an Admin dashboard for KPIs and monitoring all transactions. This way key business decisions can be made in a data-driven manner.
+
+
 
 <p align="center">
   <img src="./assets/UI_demo.gif" alt="Demo of the Web UI" width="100%">
@@ -48,9 +53,9 @@ All/Deposits/Payments and date-range results in a polished table.
     - New transactions are saved with the current user’s userId
 - **Sorted output** (latest first) everywhere.
 - **Web UI**:
-    - Three quick views (All, Deposits, Payments)
-    - Date-range query
-    - Clean, dark, responsive design with summary KPIs
+    - Admin Dashboard Views (All, Deposits, Payments, Users)
+    - Date-range query (allows you to generate reports for any duration of time)
+    - Clean, responsive design with summary KPIs fpr Admins
 - **Web API (JSON)** served by Javalin.
 
 ## Tech Stack
@@ -174,6 +179,21 @@ GET /api/transactions/range?start=YYYY-MM-DD&end=YYYY-MM-DD
 * Transaction implements equals/hashCode for de-dup at load time.
 * User holds id, name, pin, adminAccess. 
 * In-memory store: DataStore.java
+
+## Future Features
+### CLI Features 
+* Create Users interface (CLI)
+* Restrict accounts based on suspicious activities and too many login attempts (CLI)
+* Ability for the Admin user to unrestrict user accounts (CLI)
+* Transaction modeOfTransfer in Transaction class (cash, ACH, Wire)
+* Ability for Admin Users to pull back a transaction for fraud, clerk mistake, system issues etc (CLI)
+* Compliance flagging for transactions (cash deposit over 10k etc) (CLI)
+### Web Features
+* Authentication and Authorization for Admin Users (Web)
+* Easy Access Chips for common reports like MTD, YTD etc (Web)
+* Login and Sign Up page (Web)
+* Permission Management for users using UI (Web)
+* 
 
 ## License
 
