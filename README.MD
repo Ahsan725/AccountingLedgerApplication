@@ -6,14 +6,14 @@ It includes a CLI for entering and reporting on transactions and a lightweight w
 All/Deposits/Payments and date-range results in a polished table.
 
 <p align="center">
-  <img src="./assets/ui-demo.gif" alt="Demo of the Web UI" width="100%">
+  <img src="./assets/UI_demo.gif" alt="Demo of the Web UI" width="100%">
 </p>
 
 
 # Raw APIs Response 
 
 <p align="center">
-  <img src="./assets/ui-demo.gif" alt="Demo of the APIs" width="100%">
+  <img src="./assets/api_demo.gif" alt="Demo of the APIs" width="100%">
 </p>
 
 
