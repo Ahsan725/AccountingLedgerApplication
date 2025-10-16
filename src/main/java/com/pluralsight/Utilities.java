@@ -92,7 +92,7 @@ public final class Utilities {
                     """);
 
             // I take first char of the user input
-            operation = require("string").charAt(0);
+            operation = readInputRequireType("string").charAt(0);
 
             switch (operation) {
                 case 'd' -> {
@@ -112,7 +112,7 @@ public final class Utilities {
     }
 
 //created this method to prevent all parsing errors, exceptions, etc for any type of data input from user.
-    private static String require(String expectedType) {
+    private static String readInputRequireType(String expectedType) {
         final Pattern alnum = Pattern.compile("^[a-z0-9]+$");
         final Pattern intPattern = Pattern.compile("^\\d+$");
         final Pattern doublePattern = Pattern.compile("^\\d+(\\.\\d+)?$"); // like 23 or 23.45
@@ -329,7 +329,7 @@ public final class Utilities {
                     H) Return to Home
                     Enter command:
                     """);
-            operation = require("string").charAt(0);
+            operation = readInputRequireType("string").charAt(0);
 
             switch (operation) {
                 case 'a' -> printByTypeSorted("all");
@@ -363,7 +363,7 @@ public final class Utilities {
                     0) Back
                     Enter command:
                     """);
-            operation = Integer.parseInt(require("int"));
+            operation = Integer.parseInt(readInputRequireType("int"));
             switch (operation) {
                 case 1 -> printMonthToDate();
                 case 2 -> printPreviousMonth();
@@ -398,7 +398,7 @@ public final class Utilities {
                     0) Back
                     Enter command:
                     """);
-            operation = Integer.parseInt(require("int"));
+            operation = Integer.parseInt(readInputRequireType("int"));
             switch (operation) {
                 case 1 -> searchByVendor();
                 case 2 -> searchByDescription();
@@ -640,7 +640,7 @@ public final class Utilities {
         while (true) {
             System.out.print("Enter the amount: ");
             if (sc.hasNextDouble()) {
-                double entered = Double.parseDouble(require("double"));
+                double entered = Double.parseDouble(readInputRequireType("double"));
                 amount = depositOnly ? Math.abs(entered) : -Math.abs(entered);
                 break;
             } else {
