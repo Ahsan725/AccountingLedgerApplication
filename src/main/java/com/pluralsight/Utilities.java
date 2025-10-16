@@ -8,23 +8,20 @@ import java.util.function.Function;
 
 /**
  * # Utilities: CLI + helper utilities for the ledger application.
- * <p>
+ *
  * Responsibilities:
  * - Bootstraps a console application flow (menus, input handling).
  * - Loads/saves transactions to a pipe-delimited CSV file: transactions.csv.
  * - Loads user profiles from profiles.csv and authenticates a user.
  * - Enforces per-user visibility (non-admins see only their records; admins see all).
  * - Provides report/search views (date ranges, vendor, description, custom filters).
- * <p>
- * <p>
+ *
  * Notes:
  * Amounts: deposits are stored as positive numbers; payments (debits) as negative numbers.
  * Types: in this code, "credit" = payment (amount < 0) and "debit" = deposit (amount > 0).
  * This is intentionally mirrored in printByTypeSorted(String) and the menu labels.
  * Sorting: most views sort by date/time descending (newest first)
  * Duplicates: a Set<Transaction> called seen prevents duplicate inserts.
- * <p>
- * <p>
  * This class is final with a private constructor which means it's a static utility holder only.
  * Console input uses one shared Scanner to avoid repeatedly passing it around.
  *
