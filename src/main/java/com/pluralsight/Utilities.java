@@ -6,30 +6,77 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Function;
 
+/**
+ * # Utilities: CLI + helper utilities for the ledger application.
+ * <p>
+ * Responsibilities:
+ * - Bootstraps a console application flow (menus, input handling).
+ * - Loads/saves transactions to a pipe-delimited CSV file: transactions.csv.
+ * - Loads user profiles from profiles.csv and authenticates a user.
+ * - Enforces per-user visibility (non-admins see only their records; admins see all).
+ * - Provides report/search views (date ranges, vendor, description, custom filters).
+ * <p>
+ * <p>
+ * Notes:
+ * Amounts: deposits are stored as positive numbers; payments (debits) as negative numbers.
+ * Types: in this code, "credit" = payment (amount < 0) and "debit" = deposit (amount > 0).
+ * This is intentionally mirrored in printByTypeSorted(String) and the menu labels.
+ * Sorting: most views sort by date/time descending (newest first)
+ * Duplicates: a Set<Transaction> called seen prevents duplicate inserts.
+ * <p>
+ * <p>
+ * This class is final with a private constructor which means it's a static utility holder only.
+ * Console input uses one shared Scanner to avoid repeatedly passing it around.
+ *
+ */
 public final class Utilities {
 
-    //static comparator
-    private static final Comparator<Transaction> BY_DATETIME_DESCENDING = Comparator.comparing(Transaction::getDate).thenComparing(Transaction::getTime).reversed();
-    //Static variables
-    static Scanner sc = new Scanner(System.in); //added a static Scanner to avoid passing it to methods repeatedly
-    static String fileName = "transactions.csv";//file we will read from and write to
+    // Comparator for newest-first ordering (date, then time, reversed).
+    private static final Comparator<Transaction> BY_DATETIME_DESCENDING =
+            Comparator.comparing(Transaction::getDate)
+                    .thenComparing(Transaction::getTime)
+                    .reversed();
+
+    // Static, process-wide resources
+    // Shared scanner for console input to avoid passing it around.
+    static Scanner sc = new Scanner(System.in);
+
+    // Transactions CSV file (pipe-delimited: userid|date|time|description|vendor|amount).
+    static String fileName = "transactions.csv";
+
+    // The in-memory ledger that loads transactions from the file and adds new transactions go here.
     static List<Transaction> ledger = DataStore.ledger;
-    // at top of Utilities (next to fileName)
+
+    // Profiles CSV file (pipe-delimited: userid|name|pin|access).
     static String profilesFileName = "profiles.csv";
+
+    // The user currently authenticated through the CLI.
     static User currentUser;
+
+    // Quick lookup from user id to User loaded from the profiles.
     static HashMap<Integer, User> idToUser = new HashMap<>();
+
+    //Tracks transactions we've already seen (from file or created this session).
+    //Used to prevent duplicates when re-reading/saving/logging in and out new users.
     static Set<Transaction> seen = new HashSet<>(ledger);
 
+    // Private constructor to prevent instantiation (utility class)
     private Utilities() {
-    } // constructor that prevents instantiation
+    }
 
+    /**
+     * Entry point for the CLI App.
+     * - Loads users and transactions from the file
+     * - Authenticates a user
+     * - Shows the main menu loop: deposit, payment, ledger, logout, exit.
+     */
     public static void startCliApplication() {
-        readUsersFromFile();
-        readFromFileAndAddToLedger(); //load transactions into the program
-        setCurrentUser();
+        readUsersFromFile();              // Load users into idToUser
+        readFromFileAndAddToLedger();     // Load transactions into ledger + seen
+        setCurrentUser();                 // Authenticate a user and set them as the current user
+
         char operation = ' ';
         while (operation != 'x') {
-
             System.out.println("""
                     
                     Welcome to the Ledger!
@@ -41,31 +88,32 @@ public final class Utilities {
                     X) Exit
                     Enter command:
                     """);
+            // I trim, lowercase, and take first char of the user input
             operation = sc.nextLine().toLowerCase().charAt(0);
+
             switch (operation) {
                 case 'd' -> {
-                    //since we are making a deposit we will only allow positive transaction
-                    performTransaction(true); //calling helper function with a boolean flag to indicate transaction type
+                    // Deposits are positive. Takes in a boolean argument: depositOnly
+                    performTransaction(true);
                 }
                 case 'p' -> {
-                    //since we are making a payment we will only allow positive transaction
-                    performTransaction(false); //calling helper function with a boolean flag to indicate transaction type
+                    // Payments are negative
+                    performTransaction(false);
                 }
-                case 'l' -> ledgerMenu();
-                case 'o' -> logOut();
-                case 'x' -> {
-                    System.out.println("Exiting...");
-                }
-                default -> {
-                    //catch all else
-                    System.out.println("Invalid operation... Try again or press X to quit");
-
-                }
+                case 'l' -> ledgerMenu(); //displays the ledger menu
+                case 'o' -> logOut(); //logs a user out and lets another user log in
+                case 'x' -> System.out.println("Exiting...");
+                default -> System.out.println("Invalid operation... Try again or press X to quit");
             }
-
         }
     }
 
+    /**
+     * Prompts for user id + PIN until a valid match is found.
+     * - Numeric validation for user id.
+     * - PIN match against profiles file.
+     * - Sets currentUser on success.
+     */
     private static void setCurrentUser() {
         while (true) {
             try {
@@ -99,6 +147,11 @@ public final class Utilities {
         }
     }
 
+    /**
+     * Loads user profiles from profilesFileName into idToUser.
+     * Skips optional headers wherever they appear and ignores bad rows. I did this to ensure that the application
+     * does not break if one of the line was added incorrectly.
+     */
     private static void readUsersFromFile() {
         idToUser.clear();
         try (BufferedReader br = new BufferedReader(new FileReader(profilesFileName))) {
@@ -109,7 +162,8 @@ public final class Utilities {
 
                 String[] userFields = s.split("\\|", -1);
 
-                // Skip header anywhere
+                // Header-tolerant because it just skips header even if not at the top. Some reports generating programs
+                //always spit out headers in my experience, and can cause problems while parsing.
                 if (userFields.length >= 4
                         && userFields[0].trim().equalsIgnoreCase("userid")
                         && userFields[1].trim().equalsIgnoreCase("name")
@@ -118,7 +172,8 @@ public final class Utilities {
                     continue;
                 }
 
-                // Need at least: id | name | pin  (access optional but preferred)
+                // Require at least id | name | pin so admin access is optional since every new User has no Admin
+                //access by default
                 if (userFields.length < 3) continue;
 
                 try {
@@ -128,14 +183,14 @@ public final class Utilities {
 
                     boolean isAdmin = false;
                     if (userFields.length >= 4) {
-                        // any case: "true"/"false"
+                        // Accepts "true"/"false" in any case
                         isAdmin = Boolean.parseBoolean(userFields[3].trim());
                     }
 
                     User u = new User(id, name, pin, isAdmin);
                     idToUser.put(id, u);
                 } catch (Exception ignore) {
-                    // bad row -> skip
+                    // On bad data, skip the row
                 }
             }
         } catch (FileNotFoundException e) {
@@ -145,15 +200,24 @@ public final class Utilities {
         }
     }
 
+    // true if a user is logged in and has admin access
     private static boolean isAdmin() {
         return currentUser != null && currentUser.isAdminAccess();
     }
 
+    /**
+     * Enforces visibility rules:
+     * - Admins: can see all transactions.
+     * - Non-admins: only transactions whose userId matches their own.
+     */
     private static boolean canView(Transaction record) {
-        // Admin sees everything; users see only their own transactions
         return isAdmin() || (currentUser != null && record.getUserId() == currentUser.getId());
     }
-    //Filter ledger to what the current user can see, and sort latest first.
+
+    /**
+     * Filters the global ledger down to only the transactions the current user is
+     * allowed to see, then sorts newest-first.
+     */
     private static List<Transaction> visibleSorted() {
         return ledger.stream()
                 .filter(Utilities::canView)
@@ -161,12 +225,20 @@ public final class Utilities {
                 .toList();
     }
 
-    private static void logOut(){
+    /**
+     * Logs out the current user and restarts the CLI to authenticate again.
+     * Simple flow reset via recursion into startCliApplication()
+     */
+    private static void logOut() {
         System.out.println("Logging out... " + currentUser.getName());
         currentUser = null;
         startCliApplication();
     }
 
+    /**
+     * Displays the "Ledger" submenu (all/deposits/payments/reports/back) and routes
+     * to the appropriate view. The loop continues until the user selects 'H'.
+     */
     private static void ledgerMenu() {
         char operation = ' ';
         while (operation != 'h') {
@@ -183,24 +255,22 @@ public final class Utilities {
                     Enter command:
                     """);
             operation = sc.nextLine().toLowerCase().trim().charAt(0);
+
             switch (operation) {
                 case 'a' -> printByTypeSorted("all");
-                case 'd' -> printByTypeSorted("debit");
-                case 'p' -> printByTypeSorted("credit");
+                case 'd' -> printByTypeSorted("debit");   // "debit" == deposits (amount > 0)
+                case 'p' -> printByTypeSorted("credit");  // "credit" == payments  (amount < 0)
                 case 'r' -> reportsMenu();
-                case 'h' -> {
-                    System.out.println("Exiting...");
-                }
-                default -> {
-                    //catch all else
-                    System.out.println("Invalid operation... Try again or press X to quit");
-
-                }
+                case 'h' -> System.out.println("Exiting...");
+                default -> System.out.println("Invalid operation... Try again or press X to quit");
             }
-
         }
     }
 
+    /**
+     * Displays the reports menu and runs the chosen report.
+     * Uses Scanner nextInt() and then consumes the trailing newline when returning.
+     */
     private static void reportsMenu() {
         int operation = -1;
         while (operation != 0) {
@@ -227,20 +297,19 @@ public final class Utilities {
                 case 5 -> searchByVendor();
                 case 6 -> searchMenu();
                 case 0 -> {
+                    // Consume newline so the next menu read works with nextLine()
                     if (sc.hasNextLine()) sc.nextLine();
                     System.out.println("Exiting...");
                 }
-                default -> {
-                    //catch all else
-                    System.out.println("Invalid operation... Try again or press 0 to quit");
-
-                }
+                default -> System.out.println("Invalid operation... Try again or press 0 to quit");
             }
-
         }
-
     }
 
+    /**
+     * Shows the search submenu (vendor, description, full custom) and dispatches to the handlers.
+     * Uses Scanner#nextInt() then consumes trailing newline on exit.
+     */
     private static void searchMenu() {
         int operation = -1;
         while (operation != 0) {
@@ -264,17 +333,19 @@ public final class Utilities {
                     if (sc.hasNextLine()) sc.nextLine();
                     System.out.println("Exiting... ");
                 }
-                default -> {
-                    //catch all else
-                    System.out.println("Invalid operation... Try again or press 0 to quit");
-
-                }
+                default -> System.out.println("Invalid operation... Try again or press 0 to quit");
             }
         }
     }
 
+    /**
+     * Fully parameterized search across (optional) start/end date, description, vendor, and exact amount.
+     * - All filters are optional; blank input is skipped
+     * - Always respects visibility—filters are applied after restricting to what the current user can see.
+     * - Sorts newest-first before iterating.
+     */
     private static void customSearch() {
-        // Clear any leftover newline from previous nextInt/nextDouble
+        // Clear leftover newline from prior nextInt/nextDouble before using nextLine()
         if (sc.hasNextLine()) sc.nextLine();
 
         System.out.println("CUSTOM SEARCH");
@@ -294,19 +365,29 @@ public final class Utilities {
         System.out.print("Amount or leave it blank: ");
         String amountInput = sc.nextLine().trim();
 
+        // this is where I parse optional filters absorb parse errors silently to keep UX simple
         LocalDate startDate = null, endDate = null;
         Double amountQuery = null;
-        try { if (!startDateInput.isEmpty()) startDate = LocalDate.parse(startDateInput); } catch (Exception ignored) {}
-        try { if (!endDateInput.isEmpty())   endDate   = LocalDate.parse(endDateInput);   } catch (Exception ignored) {}
-        try { if (!amountInput.isEmpty())    amountQuery = Double.parseDouble(amountInput); } catch (Exception ignored) {}
+        try {
+            if (!startDateInput.isEmpty()) startDate = LocalDate.parse(startDateInput);
+        } catch (Exception ignored) {
+        }
+        try {
+            if (!endDateInput.isEmpty()) endDate = LocalDate.parse(endDateInput);
+        } catch (Exception ignored) {
+        }
+        try {
+            if (!amountInput.isEmpty()) amountQuery = Double.parseDouble(amountInput);
+        } catch (Exception ignored) {
+        }
 
         String descriptionQuery = descriptionInput.isEmpty() ? null : descriptionInput.toLowerCase();
-        String vendorQuery      = vendorInput.isEmpty()      ? null : vendorInput.toLowerCase();
+        String vendorQuery = vendorInput.isEmpty() ? null : vendorInput.toLowerCase();
 
-        // *** Visibility first: only rows the current user is allowed to see ***
+        // Visibility first -> then sort -> then apply filters in one pass
         List<Transaction> visible = ledger.stream()
-                .filter(Utilities::canView)      // admin => all; user => only their userId
-                .sorted(BY_DATETIME_DESCENDING)        // newest first
+                .filter(Utilities::canView)           // admin => all; user => only their userId
+                .sorted(BY_DATETIME_DESCENDING)       // newest first
                 .toList();
 
         boolean anyPrinted = false;
@@ -315,7 +396,7 @@ public final class Utilities {
             LocalDate d = record.getDate();
 
             if (startDate != null && d.isBefore(startDate)) continue;
-            if (endDate   != null && d.isAfter(endDate))   continue;
+            if (endDate != null && d.isAfter(endDate)) continue;
 
             if (descriptionQuery != null &&
                     !record.getDescription().toLowerCase().contains(descriptionQuery)) continue;
@@ -329,25 +410,31 @@ public final class Utilities {
             anyPrinted = true;
         }
 
-        if (!anyPrinted) System.out.println("No transactions match your filters.");
+        if (!anyPrinted)
+            System.out.println("No transactions match your filters."); //if nothing was printed let the user know
     }
 
+    // Convenience wrapper for vendor-only search
     private static void searchByVendor() {
         searchByField(Transaction::getVendor, "vendor name");
     }
 
+    /**
+     * General-use case-insensitive search on a given string field of Transaction.
+     * - It takes field getter function (vendor or description) as a parameter
+     * - label used to prompt the user
+     */
     private static void searchByField(Function<Transaction, String> getter, String prompt) {
-        if (sc.hasNextLine()) sc.nextLine(); // clear leftover newline from prior nextInt/nextDouble
+        if (sc.hasNextLine()) sc.nextLine(); // Clear newline from a prior nextInt/nextDouble
         System.out.print("Enter " + prompt + ": ");
         String query = sc.nextLine().trim().toLowerCase();
 
-        // 1) Start from only-visible rows (admin => all, user => own)
+        // Restrict to visible rows, newest-first
         List<Transaction> visible = ledger.stream()
                 .filter(Utilities::canView)
-                .sorted(BY_DATETIME_DESCENDING)   // newest first
+                .sorted(BY_DATETIME_DESCENDING)
                 .toList();
 
-        // 2) Match case-insensitively on the chosen field
         boolean any = false;
         for (Transaction t : visible) {
             String field = getter.apply(t);
@@ -359,11 +446,12 @@ public final class Utilities {
         if (!any) System.out.println("No matching transactions.");
     }
 
-
+    // description-only search.
     private static void searchByDescription() {
         searchByField(Transaction::getDescription, "transaction description");
     }
 
+    //Prints all transactions from the previous calendar year (inclusive)
     private static void printPreviousYear() {
         LocalDate today = LocalDate.now();
         int prevYear = today.getYear() - 1;
@@ -372,37 +460,46 @@ public final class Utilities {
         printByDuration(firstDayPrevYear, lastDayPrevYear);
     }
 
+    // Prints all transactions from Jan 1 of the current year through today (inclusive).
     private static void printYearToDate() {
         LocalDate today = LocalDate.now();
         LocalDate firstDayOfYear = today.withDayOfYear(1);
         printByDuration(firstDayOfYear, today);
     }
 
+    // Prints all transactions from the previous calendar month (inclusive)
     private static void printPreviousMonth() {
-        LocalDate today = LocalDate.now(); //first I get current date
-        //used yearMonth from java time to do calendric arithmetic as Paul calls it
-        java.time.YearMonth prev = java.time.YearMonth.from(today).minusMonths(1); //then previous month
-        LocalDate firstOfPrevious = prev.atDay(1);//then the first day of prev month
-        LocalDate lastOfPrevious = prev.atEndOfMonth(); //then last day of the prev month
+        LocalDate today = LocalDate.now();
+        // YearMonth is ideal for calendar arithmetic (avoids manual month edge cases)
+        java.time.YearMonth prev = java.time.YearMonth.from(today).minusMonths(1);
+        LocalDate firstOfPrevious = prev.atDay(1);
+        LocalDate lastOfPrevious = prev.atEndOfMonth();
 
         printByDuration(firstOfPrevious, lastOfPrevious);
     }
 
+    // Prints all transactions from the start of this month through today (inclusive)
     private static void printMonthToDate() {
         LocalDate today = LocalDate.now();
         LocalDate month = today.withDayOfMonth(1);
         printByDuration(month, today);
     }
 
+    /**
+     * Prints all visible transactions between start and end inclusive, newest-first.
+     * If the caller passes reversed bounds, they are swapped
+     */
     private static void printByDuration(LocalDate start, LocalDate end) {
-        // Normalize bounds if passed in reversed
+        // Normalize bounds if reversed
         if (start.isAfter(end)) {
-            LocalDate tmp = start; start = end; end = tmp;
+            LocalDate tmp = start;
+            start = end;
+            end = tmp;
         }
 
         System.out.println("Displaying transactions between " + start + " and " + end);
 
-        // Only the transactions the current user can see, already sorted newest-first
+        // Only transactions the current user can see which is already sorted newest-first
         List<Transaction> view = visibleSorted();
 
         for (Transaction t : view) {
@@ -414,8 +511,15 @@ public final class Utilities {
         }
     }
 
+    /**
+     * Prints transactions filtered by "type":
+     * - "credit": payments (amount < 0)
+     * - "debit" : deposits (amount > 0)
+     * - anything else: all
+     * Always respects visibility and prints newest-first.
+     */
     private static void printByTypeSorted(String transactionType) {
-        // Normalizing input anything not "credit"/"debit" falls back to "all"
+        // Normalize input; anything else falls back to "all"
         String type = (transactionType == null) ? "all" : transactionType.toLowerCase();
 
         // Only the transactions the current user can see, already sorted newest-first
@@ -441,6 +545,12 @@ public final class Utilities {
         }
     }
 
+    /**
+     * Prompts for description, vendor, and amount, then creates a deposit or payment.
+     * - If depositOnly is true, the amount is forced positive
+     * - Otherwise, the amount is forced negative (payment)
+     * - Saves to file and prints a confirmation message
+     */
     private static void performTransaction(boolean depositOnly) {
         System.out.println(depositOnly ? "DEPOSIT SCREEN" : "PAYMENT SCREEN");
 
@@ -450,40 +560,54 @@ public final class Utilities {
         System.out.print("Enter the name of the vendor: ");
         String vendor = sc.nextLine();
 
-        // read a number then normalize the sign based on depositOnly
+        // keep prompting until we get a valid double,
+        // then normalize sign based on deposit/payment mode.
         double amount;
         while (true) {
             System.out.print("Enter the amount: ");
             if (sc.hasNextDouble()) {
                 double entered = sc.nextDouble();
-                sc.nextLine(); // consume newline
+                sc.nextLine(); // consume newline left by nextDouble()
                 amount = depositOnly ? Math.abs(entered) : -Math.abs(entered);
                 break;
             } else {
                 System.out.println("Invalid number. Please enter a numeric amount (e.g., 123.45 or -67.89).");
-                sc.nextLine(); //discard
+                sc.nextLine(); // discard invalid token
             }
         }
 
         LocalDate date = LocalDate.now();
-        LocalTime time = LocalTime.now().withNano(0);
+        LocalTime time = LocalTime.now().withNano(0); // seconds precision only
 
+        // Important: persist the user id from the authenticated user
         Transaction record = new Transaction(date, time, description, vendor, amount, currentUser.getId());
+
+        // Only adds to memory if not seen before and also avoids duplicate file writes during load
         if (seen.add(record)) {
             ledger.add(record);
         }
 
         writeToFile(record);
+
         System.out.printf("%s added successfully! (Amount: %,.2f)%n",
                 depositOnly ? "Deposit" : "Payment", amount);
     }
 
-
+    /**
+     * Appends a single transaction row to fileName
+     * Format: userid|date|time|description|vendor|amount
+     */
     private static void writeToFile(Transaction record) {
         if (fileName == null || fileName.isEmpty()) {
             System.err.println("Output file name is not set. Cannot write.");
             return;
         }
+        // I am stacking three writers because each adds something different that I needed for the code
+        // FileWriter(file, true) → opens the file for append and handles the low-level file writing
+        // BufferedWriter → adds a memory buffer, so I don’t hit the OS for every small write
+        // PrintWriter → gives me printf/format() and convenient println() APIs. which is why I can do
+        // out.printf(...)
+
         try (FileWriter fw = new FileWriter(fileName, true);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
@@ -492,7 +616,7 @@ public final class Utilities {
             out.printf("%d|%s|%s|%s|%s|%.2f%n",
                     record.getUserId(),
                     record.getDate(),
-                    record.getTime().toString(),  // ensure you set withNano(0) when creating
+                    record.getTime().toString(),  // seconds precision ensured at creation using withNano(0)
                     record.getDescription(),
                     record.getVendor(),
                     record.getAmount());
@@ -501,6 +625,12 @@ public final class Utilities {
         }
     }
 
+    /**
+     * Loads transactions from fileName into memory.
+     * - Skips headers even if they appear mid-file
+     * - Parses rows; malformed rows are skipped with a warning
+     * - Uses seen which is a set to avoid duplicates in ledger
+     */
     public static void readFromFileAndAddToLedger() {
         // Expect rows like: userid|date|time|description|vendor|amount
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
@@ -529,16 +659,16 @@ public final class Utilities {
 
                 try {
                     int userId = Integer.parseInt(t[0].trim());
-                    LocalDate date = LocalDate.parse(t[1].trim());      // YYYY-MM-DD
-                    LocalTime time = LocalTime.parse(t[2].trim());      // HH:mm:ss
+                    LocalDate date = LocalDate.parse(t[1].trim()); // YYYY-MM-DD
+                    LocalTime time = LocalTime.parse(t[2].trim()); // HH:mm:ss
                     String description = t[3].trim();
                     String vendor = t[4].trim();
                     double amount = Double.parseDouble(t[5].trim());
 
-                    // Use the userId from the file (do NOT use currentUser here)
+                    // Use the userId from the file
                     Transaction record = new Transaction(date, time, description, vendor, amount, userId);
-                    if (seen.add(record)) {//this will return false if it is seen before
-                        ledger.add(record); //only add if the duplicate entry does not exist
+                    if (seen.add(record)) { // returns false if duplicate
+                        ledger.add(record); // only add if not already present
                     }
                 } catch (Exception ex) {
                     System.err.println("Skipping line (bad data): " + ex.getMessage());
@@ -551,11 +681,15 @@ public final class Utilities {
         }
     }
 
+    /**
+     * Prints a transaction as a fixed-width table row to the console.
+     * Columns: date | description | vendor | amount | type | time
+     */
     private static void printFormatted(Transaction record) {
-        // date | description | vendor | amount | type | time
-        String dateString = (record.getDate() == null) ? "" : record.getDate().toString(); // YYYY-MM-DD
+        // date as YYYY-MM-DD; null-safe
+        String dateString = (record.getDate() == null) ? "" : record.getDate().toString();
 
-        // Always HH:mm:ss with zero padding because my time was missing 00 sometimes
+        // Always HH:mm:ss with zero padding (strip nanos if present)
         String timeString = "";
         if (record.getTime() != null) {
             timeString = record.getTime()
@@ -573,7 +707,13 @@ public final class Utilities {
                 timeString
         );
     }
-    //webserver methods
+
+    // Webserver helping methods
+
+    /**
+     * Formats a transaction as pipe-delimited string for web output.
+     * 2025-01-15 | Coffee | STARBUCKS         |      -3.45 | CREDIT | 08:15:09}
+     */
     public static String formatTransaction(Transaction record) {
         return String.format(
                 "%s | %-30s | %-18s | %10.2f | %-6s | %s",
@@ -581,7 +721,8 @@ public final class Utilities {
                 record.getAmount(), record.transactionType(), record.getTime()
         );
     }
-    // Created a new method to use for webserver
+
+    //Returns transactions within an inclusive date range, sorted newest-first.
     public static List<Transaction> transactionsByDuration(LocalDate start, LocalDate end) {
         if (start.isAfter(end)) {
             LocalDate tmp = start;
