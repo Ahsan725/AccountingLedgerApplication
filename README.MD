@@ -69,6 +69,10 @@ an Admin dashboard for KPIs and monitoring all transactions. This way key busine
 ## Project Structure
 
 ```text
+assets/
+ └─ ├─ api_demo.gif  # Screenshot assets 
+    ├─ ui_demo.gif  
+
 src/
  └─ main/
      ├─ java/com/pluralsight/
