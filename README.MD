@@ -34,7 +34,8 @@ an Admin dashboard for KPIs and monitoring all transactions. This way key busine
     - [Run: Web UI](#run-web-ui)
 - [Web API Endpoints](#web-api-endpoints)
 - [Frontend (HTML/CSS/JS)](#frontend-htmlcssjs)
-- - [Backend](#backend)
+- [Backend](#backend)
+- [Future Features](#future-features)
 - [License](#license)
 
 ## Features
@@ -199,7 +200,6 @@ GET /api/transactions/range?start=YYYY-MM-DD&end=YYYY-MM-DD
 * Easy Access Chips for common reports like MTD, YTD etc (Web)
 * Login and Sign Up page (Web)
 * Permission Management for users using UI (Web)
-* 
 
 ## License
 
